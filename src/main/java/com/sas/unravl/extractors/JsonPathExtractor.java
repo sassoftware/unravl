@@ -18,8 +18,8 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 /**
- * This extractor evaluates one or more <a
- * href='https://github.com/jayway/JsonPath'>JsonPath expressions</a> on the
+ * This extractor evaluates one or more
+ * <a href='https://github.com/jayway/JsonPath'>JsonPath expressions</a> on the
  * JSON result or another JSON value and binds the resulting values to variables
  * in the current environment. For example, for the JSON result
  *
@@ -51,8 +51,8 @@ import org.apache.log4j.Logger;
  *     ],
  * </pre>
  *
- * Also, the JSON response body is bound to the variable
- * <var>responseBody</var>.
+ * Also, the JSON response body is bound to the variable <var>responseBody</var>
+ * .
  * <p>
  * This extractor supports an optional parameter "from" as described below.
  * </p>
@@ -112,15 +112,15 @@ public class JsonPathExtractor extends JsonExtractor {
                 else if (val instanceof List)
                     fromObject = val;
                 else if (val instanceof ObjectNode) {
-                    fromObject = mapper.convertValue((ObjectNode) val,
+                    fromObject = mapper.convertValue(val,
                             Map.class);
                 } else if (val instanceof ArrayNode) {
-                    fromObject = mapper.convertValue((ObjectNode) val,
+                    fromObject = mapper.convertValue(val,
                             List.class);
                 } else {
-                    String msg = String
-                            .format("Variable named by 'from' value %s in %s extractor is not an object or array. Value is %s",
-                                    from, key(scriptlet), val);
+                    String msg = String.format(
+                            "Variable named by 'from' value %s in %s extractor is not an object or array. Value is %s",
+                            from, key(scriptlet), val);
                     logger.error(msg);
                     throw new UnRAVLException(msg);
                 }

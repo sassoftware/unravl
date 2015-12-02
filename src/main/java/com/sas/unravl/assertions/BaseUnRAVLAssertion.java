@@ -35,8 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @author David.Biesack@sas.com
  */
-public class BaseUnRAVLAssertion extends BaseUnRAVLPlugin implements
-        UnRAVLAssertion {
+public class BaseUnRAVLAssertion extends BaseUnRAVLPlugin
+        implements UnRAVLAssertion {
 
     private UnRAVLAssertionException e;
     private static Logger logger = Logger.getLogger(BaseUnRAVLAssertion.class);
@@ -93,7 +93,7 @@ public class BaseUnRAVLAssertion extends BaseUnRAVLPlugin implements
         StringBuilder b = new StringBuilder();
         b // .append(u.name())
           // .append(", ")
-        .append(getAssertion().toString());
+                .append(getAssertion().toString());
         return b.toString();
     }
 

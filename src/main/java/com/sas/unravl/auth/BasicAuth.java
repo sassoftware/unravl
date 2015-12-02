@@ -1,12 +1,6 @@
 // Copyright (c) 2014, SAS Institute Inc., Cary, NC, USA, All Rights Reserved
 package com.sas.unravl.auth;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.apache.commons.codec.binary.Base64;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sas.unravl.ApiCall;
 import com.sas.unravl.UnRAVL;
@@ -15,6 +9,12 @@ import com.sas.unravl.annotations.UnRAVLAuthPlugin;
 import com.sas.unravl.assertions.UnRAVLAssertionException;
 import com.sas.unravl.generators.Text;
 import com.sas.unravl.util.Json;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * An auth element which provides basic authentication. This authenticates by
@@ -88,8 +88,8 @@ public class BasicAuth extends BaseUnRAVLAuth {
         }
     }
 
-    private void basicAuth(URI uri, ObjectNode auth) throws UnRAVLException,
-            IOException {
+    private void basicAuth(URI uri, ObjectNode auth)
+            throws UnRAVLException, IOException {
         String host = uri.getHost();
         CredentialsProvider cp = getScript().getRuntime().getPlugins()
                 .getCredentialsProvider();
@@ -97,11 +97,11 @@ public class BasicAuth extends BaseUnRAVLAuth {
         HostCredentials credentials = cp.getHostCredentials(host, auth, mock);
 
         if (credentials == null)
-            throw new UnRAVLException("No Basic Auth credentials for host "
-                    + host);
+            throw new UnRAVLException(
+                    "No Basic Auth credentials for host " + host);
 
-        String creds = new Base64().encodeToString(Text.utf8(credentials
-                .getUserName() + ":" + credentials.getPassword()));
+        String creds = new Base64().encodeToString(Text.utf8(
+                credentials.getUserName() + ":" + credentials.getPassword()));
         credentials.clear();
         // TODO: use the ApiCall and add headers there instead of mutating the
         // script

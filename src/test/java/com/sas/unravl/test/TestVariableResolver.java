@@ -107,7 +107,8 @@ public class TestVariableResolver {
 
     @Test
     public void test13() {
-        assertNoResolve("{\"name\":\"Ganesh\",\"task\":\"Handle | after no valid var name\"}");
+        assertNoResolve(
+                "{\"name\":\"Ganesh\",\"task\":\"Handle | after no valid var name\"}");
     }
 
     @Test

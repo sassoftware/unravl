@@ -52,8 +52,8 @@ public class NetrcCredentialsProvider extends AbstractCredentialsProvider {
     // This regex pattern matches the .netrc file format, described in the
     // javadoc comment above
     // examples are in src/test/data/.netrc
-    static final Pattern NETRC = Pattern
-            .compile("^\\s*machine\\s+([^\\s]+)\\s+(login|user)\\s+([^\\s]+)\\s+password\\s+(\"([^\"]+)\"|([^\\s]+))(\\s+port\\s+([\\d]+))?.*$");
+    static final Pattern NETRC = Pattern.compile(
+            "^\\s*machine\\s+([^\\s]+)\\s+(login|user)\\s+([^\\s]+)\\s+password\\s+(\"([^\"]+)\"|([^\\s]+))(\\s+port\\s+([\\d]+))?.*$");
     // groups: 1 2 3 4 5 5 6 6 7 8 8
     static final int MACHINE_GROUP = 1;
     static final int USER_GROUP = 3;
@@ -70,8 +70,8 @@ public class NetrcCredentialsProvider extends AbstractCredentialsProvider {
      */
     @Override
     public HostCredentials getHostCredentials(String hostPort, String login,
-            String password, boolean mock) throws FileNotFoundException,
-            IOException {
+            String password, boolean mock)
+                    throws FileNotFoundException, IOException {
 
         if (mock)
             return mockCredentials();
@@ -117,7 +117,8 @@ public class NetrcCredentialsProvider extends AbstractCredentialsProvider {
                     String netrcport = m.group(PORT_GROUP);
                     if (host.equals(netrchost)
                             && Objects.equals(port, netrcport)) {
-                        if (login == null || m.group(USER_GROUP).equals(login)) {
+                        if (login == null
+                                || m.group(USER_GROUP).equals(login)) {
                             login = m.group(USER_GROUP);
                             password = password(m);
                             return credentials(login, password);

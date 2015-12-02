@@ -64,7 +64,8 @@ public class UnRAVLPlugins {
      * @param credentialsProvider
      *            the instance which can get userid/password for a host
      */
-    public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
+    public void setCredentialsProvider(
+            CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
     }
 

@@ -1,5 +1,13 @@
 package com.sas.unravl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sas.unravl.assertions.UnRAVLAssertion;
+import com.sas.unravl.assertions.UnRAVLAssertion.Stage;
+import com.sas.unravl.extractors.UnRAVLExtractor;
+import com.sas.unravl.util.Json;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -11,14 +19,6 @@ import javax.script.ScriptException;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sas.unravl.assertions.UnRAVLAssertion;
-import com.sas.unravl.assertions.UnRAVLAssertion.Stage;
-import com.sas.unravl.extractors.UnRAVLExtractor;
-import com.sas.unravl.util.Json;
 
 /**
  * An UnRAVL script object - this is a wrapper around a JSON UnRAVL script. An
@@ -36,7 +36,7 @@ import com.sas.unravl.util.Json;
  * execute methods.
  * <p>
  * This class only executes a single UnRAVL test, represented by a JSON object.
- * It does not execute a JSON array of scripts; use UnRAVLRuntime 
+ * It does not execute a JSON array of scripts; use UnRAVLRuntime
  * 
  * TODO: This class is too large and does too much. Refactor.
  *
@@ -60,7 +60,7 @@ public class UnRAVL {
     private String uri;
     private List<UnRAVLExtractor> extractors;
     private RestTemplate restTemplate;
-    
+
     static Logger logger = Logger.getLogger(UnRAVL.class);
 
     public UnRAVL(UnRAVLRuntime runtime, RestTemplate restTemplate) {
@@ -83,8 +83,9 @@ public class UnRAVL {
      * @throws UnRAVLException
      *             if the script is invalid
      */
-    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script, RestTemplate restTemplate)
-            throws JsonProcessingException, IOException, UnRAVLException {
+    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script,
+            RestTemplate restTemplate) throws JsonProcessingException,
+                    IOException, UnRAVLException {
         // TODO: create a new transient env for this test?
         // this.env = new Binding(env.getVariables());
         // Unfortunately, unlike java.util.Properties,
@@ -98,7 +99,7 @@ public class UnRAVL {
         this.restTemplate = restTemplate;
         initialize();
     }
-    
+
     public void setRestTemplate(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -164,7 +165,8 @@ public class UnRAVL {
                 throw new UnRAVLException(
                         "array template values are not yet supported.");
             if (!tempNode.isTextual())
-                throw new UnRAVLException("template value must be a text node.");
+                throw new UnRAVLException(
+                        "template value must be a text node.");
             String templateName = expand(tempNode.textValue());
             if (!templateName.endsWith(TEMPLATE_EXTENSION))
                 templateName += TEMPLATE_EXTENSION;
@@ -205,8 +207,8 @@ public class UnRAVL {
         defineHeaders();
     }
 
-    private void defineAPICall(UnRAVL script) throws UnRAVLException,
-            IOException {
+    private void defineAPICall(UnRAVL script)
+            throws UnRAVLException, IOException {
         if (script == null)
             return;
         if (script.method != null) {
@@ -225,16 +227,15 @@ public class UnRAVL {
                 node = script.root.get(m.toString().toLowerCase());
             if (node != null) {
                 if (method != null) {
-                    logger.warn(String
-                            .format("Warning: HTTP method %s found but method already defined as %s %s",
-                                    m, method, uri));
+                    logger.warn(String.format(
+                            "Warning: HTTP method %s found but method already defined as %s %s",
+                            m, method, uri));
                 }
                 method = m;
                 if (!node.isTextual())
-                    throw new UnRAVLException(
-                            String.format(
-                                    "URI for method %s must be a string; found %s instead.",
-                                    m, node));
+                    throw new UnRAVLException(String.format(
+                            "URI for method %s must be a string; found %s instead.",
+                            m, node));
                 uri = node.textValue();
             }
         }

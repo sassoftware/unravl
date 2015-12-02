@@ -76,8 +76,8 @@ public final class Main {
         if (System.getProperty("log4j.configuration") == null) {
             try {
                 Properties properties = new Properties();
-                properties.load(Main.class
-                        .getResourceAsStream("/log4j.properties"));
+                properties.load(
+                        Main.class.getResourceAsStream("/log4j.properties"));
                 org.apache.log4j.PropertyConfigurator.configure(properties);
             } catch (IOException e) {
                 System.err.println("Could not load log4j config");

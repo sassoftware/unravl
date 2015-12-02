@@ -71,8 +71,8 @@ public class SchemaAssertion extends BaseUnRAVLAssertion {
             values = assertion.get("value");
         }
         if (values == null) {
-            JsonNode responseBody = Json.parse(Text.utf8ToString(call
-                    .getResponseBody()));
+            JsonNode responseBody = Json
+                    .parse(Text.utf8ToString(call.getResponseBody()));
             validateValueAgainstSchema(responseBody, validatingSchema);
         } else if (values.isArray()) {
             Iterator<JsonNode> iter = values.elements();
@@ -108,8 +108,8 @@ public class SchemaAssertion extends BaseUnRAVLAssertion {
             if (request.startsWith(UnRAVL.REDIRECT_PREFIX)) {
                 Text text;
                 try {
-                    TextNode expanded = new TextNode(current.expand(schemaRef
-                            .textValue()));
+                    TextNode expanded = new TextNode(
+                            current.expand(schemaRef.textValue()));
                     text = new Text(current, expanded);
                     jsonSchema = Json.parse(text.text());
                 } catch (IOException e) {
@@ -126,10 +126,9 @@ public class SchemaAssertion extends BaseUnRAVLAssertion {
         }
 
         if (!jsonSchema.isObject()) {
-            throw new UnRAVLException(
-                    String.format(
-                            "schema value %s in schema assertion is not a \"@location\", the name of a variable holding a JSON obejct, or a JSON object.",
-                            schemaRef));
+            throw new UnRAVLException(String.format(
+                    "schema value %s in schema assertion is not a \"@location\", the name of a variable holding a JSON obejct, or a JSON object.",
+                    schemaRef));
         }
 
         return jsonSchema;

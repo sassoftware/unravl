@@ -21,10 +21,10 @@ import org.apache.log4j.Logger;
  * There are several forms for extracting links, allowing for various link
  * representations.
  * <p>
- * A JSON response may contain <a
- * href='http://tools.ietf.org/html/rfc4287#section-4.2.7'>atom:link</a>
- * representations. This is also compatible with <a
- * href='http://amundsen.com/media-types/collection/'>Collection+JSON</a>
+ * A JSON response may contain
+ * <a href='http://tools.ietf.org/html/rfc4287#section-4.2.7'>atom:link</a>
+ * representations. This is also compatible with
+ * <a href='http://amundsen.com/media-types/collection/'>Collection+JSON</a>
  * format.
  *
  * <pre>
@@ -50,8 +50,8 @@ import org.apache.log4j.Logger;
  * <p>
  * Common atom:link members are rel, type, href.
  * <p>
- * The second format is the the <a
- * href='http://stateless.co/hal_specification.html'>Hypertext Application
+ * The second format is the the
+ * <a href='http://stateless.co/hal_specification.html'>Hypertext Application
  * Language</a> (HAL) representation by Mike Kelly which uses a "_links" member:
  *
  * <pre>
@@ -278,10 +278,9 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
             ObjectNode effectiveSpec = effectiveLinksSpec(extractor, spec);
             extractLinks(extractor, from, effectiveSpec, href, call);
         } catch (ClassCastException e) {
-            throw new UnRAVLException(
-                    String.format(
-                            "%s extractor invalid or corresponding links are not well formed",
-                            key(extractor)));
+            throw new UnRAVLException(String.format(
+                    "%s extractor invalid or corresponding links are not well formed",
+                    key(extractor)));
         }
     }
 
@@ -292,7 +291,7 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
 
     private void extractLinks(ObjectNode root, ObjectNode from,
             ObjectNode effectiveSpec, boolean href, ApiCall call)
-            throws UnRAVLException {
+                    throws UnRAVLException {
         ArrayNode linksArray = null;
         ObjectNode linksObject = null;
         if (from.get(HAL_LINKS_KEY) != null) {
@@ -305,10 +304,11 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
             JsonNode coll = from.get(COLLECTION_KEY);
             if (coll != null && coll.isObject()) {
                 linksArray = Json.array(coll.get(LINKS_KEY));
-                logger.info("Extracting Collection+JSON style links from \"collection\" member");
+                logger.info(
+                        "Extracting Collection+JSON style links from \"collection\" member");
             } else {
-                String msg = String.format(
-                        "Cannot infer links in %s extractor", key(root));
+                String msg = String.format("Cannot infer links in %s extractor",
+                        key(root));
                 logger.error(msg);
                 throw new UnRAVLException(msg);
             }
@@ -316,7 +316,8 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
         for (Map.Entry<String, JsonNode> e : Json.fields(effectiveSpec)) {
             String name = e.getKey();
             JsonNode spec = e.getValue();
-            JsonNode link = matchLink(name, spec, linksArray, linksObject, root);
+            JsonNode link = matchLink(name, spec, linksArray, linksObject,
+                    root);
             Object value = link;
             if (href) {
                 value = link.get(HREF_KEY).textValue();
@@ -326,9 +327,8 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
         }
     }
 
-    private JsonNode matchLink(String name, JsonNode spec,
-            ArrayNode linksArray, ObjectNode linksObject, ObjectNode root)
-            throws UnRAVLException {
+    private JsonNode matchLink(String name, JsonNode spec, ArrayNode linksArray,
+            ObjectNode linksObject, ObjectNode root) throws UnRAVLException {
         if (linksArray != null) {// Collection+JSON mode
             for (JsonNode link : Json.toArray(linksArray)) {
                 if (matches(root, name, spec, link))
@@ -385,10 +385,9 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
                     String name = e.textValue();
                     effectiveSpec.set(name, e);
                 } else
-                    throw new UnRAVLException(
-                            String.format(
-                                    "Array elements must be strings in %s extractor: %s",
-                                    key(root), e));
+                    throw new UnRAVLException(String.format(
+                            "Array elements must be strings in %s extractor: %s",
+                            key(root), e));
             }
         } else if (spec.isObject()) {
             effectiveSpec = (ObjectNode) spec;
@@ -413,10 +412,9 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
                         "No responseBody binding in %s extractor.", key(root)));
             }
             if (!(f instanceof ObjectNode)) {
-                throw new UnRAVLException(
-                        String.format(
-                                "responseBody is not bound to a JSON object in %s extractor.",
-                                key(root)));
+                throw new UnRAVLException(String.format(
+                        "responseBody is not bound to a JSON object in %s extractor.",
+                        key(root)));
             }
             from = (ObjectNode) f;
         } else {
@@ -427,20 +425,18 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
                     if (val instanceof ObjectNode) {
                         from = (ObjectNode) val;
                     } else {
-                        throw new UnRAVLException(
-                                String.format(
-                                        "from value %s in %s extractor is not a JSON object",
-                                        from, key(root)));
+                        throw new UnRAVLException(String.format(
+                                "from value %s in %s extractor is not a JSON object",
+                                from, key(root)));
                     }
                 } else {
                     Object o = call.getScript().eval(where);
                     if (o instanceof ObjectNode) {
                         from = (ObjectNode) o;
                     } else
-                        throw new UnRAVLException(
-                                String.format(
-                                        "expression %s did not yield a JSON object in %s extractor",
-                                        where, key(root)));
+                        throw new UnRAVLException(String.format(
+                                "expression %s did not yield a JSON object in %s extractor",
+                                where, key(root)));
                 }
             }
         }

@@ -36,12 +36,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @author David.Biesack@sas.com
  */
-public class BaseUnRAVLRequestBodyGenerator extends BaseUnRAVLPlugin implements
-        UnRAVLRequestBodyGenerator {
+public class BaseUnRAVLRequestBodyGenerator extends BaseUnRAVLPlugin
+        implements UnRAVLRequestBodyGenerator {
 
     @Override
-    public InputStream getBody(UnRAVL script, ObjectNode scriptlet, ApiCall call)
-            throws IOException, UnRAVLException {
+    public InputStream getBody(UnRAVL script, ObjectNode scriptlet,
+            ApiCall call) throws IOException, UnRAVLException {
         setScript(script);
         setScriptlet(scriptlet);
         setCall(call);

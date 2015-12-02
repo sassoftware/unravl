@@ -60,18 +60,19 @@ public class Text implements CharSequence {
         this.script = script;
     }
 
-    public Text(UnRAVL script, JsonNode node, String key) throws IOException,
-            UnRAVLException {
+    public Text(UnRAVL script, JsonNode node, String key)
+            throws IOException, UnRAVLException {
         this(script, node.get(key));
     }
 
-    public Text(UnRAVL script, JsonNode node) throws IOException,
-            UnRAVLException {
+    public Text(UnRAVL script, JsonNode node)
+            throws IOException, UnRAVLException {
         this(script);
         build(node);
     }
 
-    public Text(UnRAVL script, String text) throws IOException, UnRAVLException {
+    public Text(UnRAVL script, String text)
+            throws IOException, UnRAVLException {
         this(script);
         build(text);
     }
@@ -92,8 +93,8 @@ public class Text implements CharSequence {
 
     private void build(String textValue) throws IOException {
         if (textValue.startsWith(UnRAVL.REDIRECT_PREFIX)) {
-            String expanded = script.expand(textValue
-                    .substring(UnRAVL.REDIRECT_PREFIX.length()));
+            String expanded = script.expand(
+                    textValue.substring(UnRAVL.REDIRECT_PREFIX.length()));
             buildFromStream(expanded);
         } else {
             text.append(textValue);

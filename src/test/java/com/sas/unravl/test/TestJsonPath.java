@@ -53,7 +53,7 @@ public class TestJsonPath {
         ArrayNode an = m.valueToTree(a);
         assertNotNull(on);
         assertNotNull(an);
-        assertEquals(2,on.size());
+        assertEquals(2, on.size());
         assertEquals(6, an.size());
     }
 }

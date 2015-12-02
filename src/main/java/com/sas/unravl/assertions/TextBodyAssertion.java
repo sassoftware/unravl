@@ -18,8 +18,8 @@ import java.io.IOException;
  *
  */
 @UnRAVLAssertionPlugin("text")
-public class TextBodyAssertion extends BaseUnRAVLAssertion implements
-        UnRAVLAssertion {
+public class TextBodyAssertion extends BaseUnRAVLAssertion
+        implements UnRAVLAssertion {
 
     @Override
     public void check(UnRAVL current, ObjectNode assertion, Stage when,
@@ -44,16 +44,14 @@ public class TextBodyAssertion extends BaseUnRAVLAssertion implements
     private void assertEquals(String expected, String actual)
             throws UnRAVLAssertionException {
         if (expected.length() != actual.length())
-            throw new UnRAVLAssertionException(
-                    String.format(
-                            "text contents not equal: length %d not equal to expected length %d",
-                            actual.length(), expected.length()));
+            throw new UnRAVLAssertionException(String.format(
+                    "text contents not equal: length %d not equal to expected length %d",
+                    actual.length(), expected.length()));
         for (int len = actual.length(), i = 0; i < len; i++) {
             if (actual.charAt(i) != expected.charAt(i))
-                throw new UnRAVLAssertionException(
-                        String.format(
-                                "binary array contents not equal at byte %d: found %d, expected %d",
-                                i, actual.charAt(i), expected.charAt(i)));
+                throw new UnRAVLAssertionException(String.format(
+                        "binary array contents not equal at byte %d: found %d, expected %d",
+                        i, actual.charAt(i), expected.charAt(i)));
         }
     }
 

@@ -21,8 +21,8 @@ import java.io.IOException;
  * 
  * @author David.Biesack@sas.com
  */
-abstract public class AbstractCredentialsProvider implements
-        CredentialsProvider {
+abstract public class AbstractCredentialsProvider
+        implements CredentialsProvider {
 
     protected UnRAVLRuntime runtime;
 
@@ -30,6 +30,7 @@ abstract public class AbstractCredentialsProvider implements
         super();
     }
 
+    @Override
     public void setRuntime(UnRAVLRuntime runtime) {
         this.runtime = runtime;
     }

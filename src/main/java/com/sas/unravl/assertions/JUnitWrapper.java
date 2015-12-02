@@ -54,7 +54,7 @@ public class JUnitWrapper {
     /**
      * Run scripts in the directory if the file names match the pattern. This
      * will try to run all scripts, even if some fail. Each script runs
-     * independently in its own environment. 
+     * independently in its own environment.
      * 
      * TODO: Add boolean recursive option
      *
@@ -80,11 +80,11 @@ public class JUnitWrapper {
             int count = runScriptFiles(map,
                     fileNames.toArray(new String[fileNames.size()]));
             System.out.println(String.format("Ran %s scripts in %s%s", count,
-                    directoryName, pattern == null ? "" : " matching pattern "
-                            + pattern));
+                    directoryName,
+                    pattern == null ? "" : " matching pattern " + pattern));
         } else {
-            throw new AssertionError(String.format(
-                    "Warning: directory %s does not exist.", dir));
+            throw new AssertionError(String
+                    .format("Warning: directory %s does not exist.", dir));
         }
     }
 
@@ -103,11 +103,11 @@ public class JUnitWrapper {
             int count = runScriptFiles(runtime,
                     fileNames.toArray(new String[fileNames.size()]));
             System.out.println(String.format("Ran %s scripts in %s%s", count,
-                    directoryName, pattern == null ? "" : " matching pattern "
-                            + pattern));
+                    directoryName,
+                    pattern == null ? "" : " matching pattern " + pattern));
         } else {
-            throw new AssertionError(String.format(
-                    "Warning: directory %s does not exist.", dir));
+            throw new AssertionError(String
+                    .format("Warning: directory %s does not exist.", dir));
         }
     }
 
@@ -149,7 +149,8 @@ public class JUnitWrapper {
             Map<String, Object> env, String... scriptFileNames) {
         // for now, assume each command line arg is an UnRAVL script
         int count = 0;
-        Map<String, Object> newEnv = (env == null ? new HashMap<String, Object>()
+        Map<String, Object> newEnv = (env == null
+                ? new HashMap<String, Object>()
                 : new HashMap<String, Object>(env));
         Throwable caught = null;
         for (String scriptFile : scriptFileNames) {
@@ -179,7 +180,7 @@ public class JUnitWrapper {
     /**
      * Run all scripts in the directory, but expect an UnRAVLException. This
      * should be used to test invalid scripts. Each script runs independently in
-     * its own environment. 
+     * its own environment.
      * 
      * TODO: Add boolean recursive option
      *
@@ -196,7 +197,7 @@ public class JUnitWrapper {
     /**
      * Run all scripts in the directory which match a pattern, but expect an
      * UnRAVLException. This should be used to test invalid scripts. Each script
-     * runs independently in its own environment. 
+     * runs independently in its own environment.
      * 
      * TODO: Add boolean recursive option
      *
@@ -222,11 +223,11 @@ public class JUnitWrapper {
             int count = JUnitWrapper.tryScriptFiles(env,
                     fileNames.toArray(new String[fileNames.size()]));
             System.out.println(String.format("Tried %s scripts in %s%s", count,
-                    directoryName, pattern == null ? "" : " matching pattern "
-                            + pattern));
+                    directoryName,
+                    pattern == null ? "" : " matching pattern " + pattern));
         } else {
-            throw new AssertionError(String.format(
-                    "Warning: directory %s does not exist.", dir));
+            throw new AssertionError(String
+                    .format("Warning: directory %s does not exist.", dir));
         }
     }
 

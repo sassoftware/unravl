@@ -18,16 +18,16 @@ public class TestBinary extends TestBase {
 
     @Test
     public void simpleBinary() throws IOException, UnRAVLException {
-        testBinary("{ 'binary' : [0, 1, 2, 3, 4 ] }", new byte[] { 0, 1, 2, 3,
-                4 });
-        testBinary("{ 'binary' : [0, 1, [2, 3], 4 ] }", new byte[] { 0, 1, 2,
-                3, 4 });
+        testBinary("{ 'binary' : [0, 1, 2, 3, 4 ] }",
+                new byte[] { 0, 1, 2, 3, 4 });
+        testBinary("{ 'binary' : [0, 1, [2, 3], 4 ] }",
+                new byte[] { 0, 1, 2, 3, 4 });
         testBinary("{ 'binary' : [0, 1, '@src/test/java/B.txt', 4 ] }",
                 new byte[] { 0, 1, 'B', '\n', 4 });
     }
 
-    private void testBinary(String json, byte expected[]) throws IOException,
-            UnRAVLException {
+    private void testBinary(String json, byte expected[])
+            throws IOException, UnRAVLException {
         ObjectNode node = Json.object(mockJson(json));
         UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
         Binary binary = new Binary(script, node, "binary");
@@ -44,8 +44,8 @@ public class TestBinary extends TestBase {
 
     @Test(expected = IOException.class)
     public void noSuchURL() throws IOException, UnRAVLException {
-        ObjectNode node = Json
-                .object(mockJson("{'binary' : '@scheme://host:9090/no/such/resource.ext' }"));
+        ObjectNode node = Json.object(mockJson(
+                "{'binary' : '@scheme://host:9090/no/such/resource.ext' }"));
         UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
         new Binary(script, node, "binary");
     }

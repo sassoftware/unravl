@@ -35,6 +35,6 @@ public interface UnRAVLRequestBodyGenerator {
      * @throws UnRAVLException
      *             if the body cannot be generated
      */
-    public InputStream getBody(UnRAVL script, ObjectNode scriptlet, ApiCall call)
-            throws IOException, UnRAVLException;
+    public InputStream getBody(UnRAVL script, ObjectNode scriptlet,
+            ApiCall call) throws IOException, UnRAVLException;
 }

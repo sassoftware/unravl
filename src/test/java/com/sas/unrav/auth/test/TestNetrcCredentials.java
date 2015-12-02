@@ -28,15 +28,18 @@ public class TestNetrcCredentials {
 
     @Parameters(name = "{index} host {0}, expect user {1}, password {2}")
     public static Collection<Object[]> testCases() {
-        
-        return Arrays.asList(new Object[][] { //@formatter:off
+
+        return Arrays.asList(new Object[][] { // @formatter:off
                 // this test data should match src/test/netrc/.netrc
-                new String[] {"simple.host.com","test.user.a", "test.user.a-secret"},
-                new String[] {"host.withport8080.com:8080", "test.user.b", "test.user.b-secret"},
-                new String[] {"host.whitespace.com", "test.user.c", "test.user.c-secret"},
-                new String[] {"host.special.com", "test.user.d", "test.user.d password"},
-                });
-    } //@formatter:on
+                new String[] { "simple.host.com", "test.user.a",
+                        "test.user.a-secret" },
+                new String[] { "host.withport8080.com:8080", "test.user.b",
+                        "test.user.b-secret" },
+                new String[] { "host.whitespace.com", "test.user.c",
+                        "test.user.c-secret" },
+                new String[] { "host.special.com", "test.user.d",
+                        "test.user.d password" }, });
+    } // @formatter:on
 
     static String userHome = null;
 
@@ -58,7 +61,8 @@ public class TestNetrcCredentials {
     String expectedUserName;
     String expectedPassword;
 
-    public TestNetrcCredentials(String hostName, String expectedUserName, String expectedPassword) {
+    public TestNetrcCredentials(String hostName, String expectedUserName,
+            String expectedPassword) {
         this.hostName = hostName;
         this.expectedUserName = expectedUserName;
         this.expectedPassword = expectedPassword;
@@ -68,16 +72,15 @@ public class TestNetrcCredentials {
     public void testNetrcCredentials() throws UnRAVLException, IOException {
 
         if (userHome == null)
-            fail(String
-                    .format("no src/test/netrc directory relative to current directory %s",
-                            System.getProperty("user.dir")));
+            fail(String.format(
+                    "no src/test/netrc directory relative to current directory %s",
+                    System.getProperty("user.dir")));
 
         NetrcCredentialsProvider nc = new NetrcCredentialsProvider();
         nc.setRuntime(rt);
 
         ObjectNode node = (ObjectNode) Json.parse("{ \"basic\" : true }");
-        HostCredentials cred = nc.getHostCredentials(hostName, node,
-                false);
+        HostCredentials cred = nc.getHostCredentials(hostName, node, false);
         assertEquals(expectedUserName, cred.getUserName());
         assertEquals(expectedPassword, cred.getPassword());
 

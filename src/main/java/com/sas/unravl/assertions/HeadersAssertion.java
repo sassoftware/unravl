@@ -1,5 +1,13 @@
 package com.sas.unravl.assertions;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sas.unravl.ApiCall;
+import com.sas.unravl.UnRAVL;
+import com.sas.unravl.UnRAVLException;
+import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
+import com.sas.unravl.util.Json;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -9,14 +17,6 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpHeaders;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sas.unravl.ApiCall;
-import com.sas.unravl.UnRAVL;
-import com.sas.unravl.UnRAVLException;
-import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
-import com.sas.unravl.util.Json;
 
 /**
  * Asserts that HTTP response headers exists and that it matches a regular
@@ -61,8 +61,7 @@ public class HeadersAssertion extends BaseUnRAVLAssertion {
             try {
                 boolean found = false;
                 for (String hval : h) {
-                    Matcher matcher = Pattern.compile(pattern)
-                            .matcher(hval);
+                    Matcher matcher = Pattern.compile(pattern).matcher(hval);
                     if (matcher.matches()) {
                         found = true;
                         logger.trace("header " + header
@@ -76,7 +75,8 @@ public class HeadersAssertion extends BaseUnRAVLAssertion {
                 }
             } catch (PatternSyntaxException e) {
                 throw new UnRAVLException(
-                        "Invalid header pattern regular expression, " + pattern);
+                        "Invalid header pattern regular expression, "
+                                + pattern);
             }
 
         }

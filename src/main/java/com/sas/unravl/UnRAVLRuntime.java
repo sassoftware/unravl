@@ -1,5 +1,23 @@
 package com.sas.unravl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
+import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
+import com.sas.unravl.assertions.UnRAVLAssertion;
+import com.sas.unravl.assertions.UnRAVLAssertionException;
+import com.sas.unravl.generators.UnRAVLRequestBodyGenerator;
+import com.sas.unravl.util.Json;
+import com.sas.unravl.util.VariableResolver;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -20,24 +38,6 @@ import org.apache.log4j.Logger;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.json.JsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import com.jayway.jsonpath.spi.mapper.MappingProvider;
-import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
-import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
-import com.sas.unravl.assertions.UnRAVLAssertion;
-import com.sas.unravl.assertions.UnRAVLAssertionException;
-import com.sas.unravl.generators.UnRAVLRequestBodyGenerator;
-import com.sas.unravl.util.Json;
-import com.sas.unravl.util.VariableResolver;
 
 /**
  * The runtime environment for running UnRAVL scripts. The runtime contains the
@@ -65,7 +65,7 @@ public class UnRAVLRuntime {
     private boolean canceled;
 
     private RestTemplate restTemplate = new RestTemplate();
-    
+
     public UnRAVLRuntime() {
         this(new LinkedHashMap<String, Object>());
     }
@@ -83,7 +83,7 @@ public class UnRAVLRuntime {
     public void setRestTemplate(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
-    
+
     /**
      * @return this runtime's default script language
      */
@@ -174,7 +174,8 @@ public class UnRAVLRuntime {
             return;
 
         // Configure Spring. Works on Unix; fails on Windows?
-        String[] contextXml = new String[] { "/META-INF/spring/unravlApplicationContext.xml" };
+        String[] contextXml = new String[] {
+                "/META-INF/spring/unravlApplicationContext.xml" };
         ctx = new ClassPathXmlApplicationContext(contextXml);
         assert (ctx != null);
 
@@ -225,8 +226,8 @@ public class UnRAVLRuntime {
         return this;
     }
 
-    public void execute(JsonNode... roots) throws JsonProcessingException,
-            IOException, UnRAVLException {
+    public void execute(JsonNode... roots)
+            throws JsonProcessingException, IOException, UnRAVLException {
         execute(Arrays.asList(roots));
     }
 
@@ -238,8 +239,8 @@ public class UnRAVLRuntime {
             if (root.isTextual()) {
                 String ref = root.textValue();
                 if (ref.startsWith(UnRAVL.REDIRECT_PREFIX)) {
-                    String sublist = expand(ref
-                            .substring(UnRAVL.REDIRECT_PREFIX.length()));
+                    String sublist = expand(
+                            ref.substring(UnRAVL.REDIRECT_PREFIX.length()));
                     execute(read(sublist));
                     continue;
                 }
@@ -406,11 +407,10 @@ public class UnRAVLRuntime {
         String separator = "";
         for (ApiCall call : calls) {
             UnRAVL script = call.getScript();
-            String title = "Script '"
-                    + script.getName()
-                    + "' "
-                    + (call.getMethod() == null ? "<no method>" : script
-                            .getMethod().toString()) + " "
+            String title = "Script '" + script.getName() + "' "
+                    + (call.getMethod() == null ? "<no method>"
+                            : script.getMethod().toString())
+                    + " "
                     + (call.getURI() == null ? "<no URI>" : call.getURI());
             System.out.print(separator);
             for (int i = title.length(); i > 0; i--)
@@ -419,9 +419,9 @@ public class UnRAVLRuntime {
             System.out.println(title);
 
             if (call.getException() != null) {
-                System.out.println("Caught exception running test "
-                        + script.getName() + " " + call.getMethod() + " "
-                        + call.getURI());
+                System.out.println(
+                        "Caught exception running test " + script.getName()
+                                + " " + call.getMethod() + " " + call.getURI());
                 System.out.println(call.getException().getMessage());
                 System.out.flush();
                 failed++;
@@ -440,13 +440,13 @@ public class UnRAVLRuntime {
         if (as.size() > 0) {
             System.out.println(as.size() + " " + label + ":");
             for (UnRAVLAssertion a : as) {
-                System.out.println(label + " " + a.getStage().getName() + " "
-                        + a);
+                System.out.println(
+                        label + " " + a.getStage().getName() + " " + a);
                 System.out.flush();
                 UnRAVLAssertionException e = a.getUnRAVLAssertionException();
                 if (e != null) {
-                    System.out.println(e.getClass().getName() + " "
-                            + e.getMessage());
+                    System.out.println(
+                            e.getClass().getName() + " " + e.getMessage());
                 }
             }
         }

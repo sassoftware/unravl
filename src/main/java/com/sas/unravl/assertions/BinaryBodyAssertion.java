@@ -19,8 +19,8 @@ import java.io.IOException;
  *
  */
 @UnRAVLAssertionPlugin("binary")
-public class BinaryBodyAssertion extends BaseUnRAVLAssertion implements
-        UnRAVLAssertion {
+public class BinaryBodyAssertion extends BaseUnRAVLAssertion
+        implements UnRAVLAssertion {
 
     @Override
     public void check(UnRAVL current, ObjectNode assertion, Stage when,
@@ -41,16 +41,14 @@ public class BinaryBodyAssertion extends BaseUnRAVLAssertion implements
     private void assertArrayEquals(byte[] expected, byte[] actual)
             throws UnRAVLAssertionException {
         if (expected.length != actual.length)
-            throw new UnRAVLAssertionException(
-                    String.format(
-                            "binary array contents not equal: length %d not equal to expected length %d",
-                            actual.length, expected.length));
+            throw new UnRAVLAssertionException(String.format(
+                    "binary array contents not equal: length %d not equal to expected length %d",
+                    actual.length, expected.length));
         for (int i = 0; i < actual.length; i++) {
             if (actual[i] != expected[i])
-                throw new UnRAVLAssertionException(
-                        String.format(
-                                "binary array contents not equal at byte %d: found %d, expected %d",
-                                i, actual[i], expected[i]));
+                throw new UnRAVLAssertionException(String.format(
+                        "binary array contents not equal at byte %d: found %d, expected %d",
+                        i, actual[i], expected[i]));
         }
     }
 

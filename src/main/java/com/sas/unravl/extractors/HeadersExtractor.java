@@ -1,13 +1,6 @@
 // Copyright (c) 2014, SAS Institute Inc., Cary, NC, USA, All Rights Reserved
 package com.sas.unravl.extractors;
 
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.log4j.Logger;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -17,6 +10,13 @@ import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
 import com.sas.unravl.assertions.UnRAVLAssertionException;
 import com.sas.unravl.util.Json;
+
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
 
 /**
  * Extract headers from the HTTP response, place them in variables, and
@@ -108,10 +108,9 @@ public class HeadersExtractor extends BaseUnRAVLExtractor {
         if (val.isObject()) {
             extractHeadesr(current, (ObjectNode) val, call);
         } else {
-            throw new UnRAVLException(
-                    String.format(
-                            "Unrecognized headers extractor: object expected but found: %s",
-                            val));
+            throw new UnRAVLException(String.format(
+                    "Unrecognized headers extractor: object expected but found: %s",
+                    val));
         }
     }
 
@@ -155,7 +154,7 @@ public class HeadersExtractor extends BaseUnRAVLExtractor {
 
     private void bindHeaderByPattern(UnRAVL current, ArrayNode a,
             String headerName, String headerValue, int offset)
-            throws UnRAVLAssertionException {
+                    throws UnRAVLAssertionException {
         String varName;
         {
             String regex = current.expand(a.get(offset + 1).textValue());
@@ -169,9 +168,9 @@ public class HeadersExtractor extends BaseUnRAVLExtractor {
                     current.bind(varName, value);
                 }
             } else
-                throw new UnRAVLAssertionException("header pattern " + regex
-                        + " does not match " + headerName + " value "
-                        + headerValue);
+                throw new UnRAVLAssertionException(
+                        "header pattern " + regex + " does not match "
+                                + headerName + " value " + headerValue);
         }
     }
 

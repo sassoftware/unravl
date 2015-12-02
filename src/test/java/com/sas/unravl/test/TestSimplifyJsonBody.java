@@ -3,11 +3,6 @@ package com.sas.unravl.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
-
-import org.junit.Test;
-import org.springframework.web.client.RestTemplate;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sas.unravl.ApiCall;
@@ -15,6 +10,11 @@ import com.sas.unravl.UnRAVL;
 import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.UnRAVLRuntime;
 import com.sas.unravl.util.Json;
+
+import java.io.IOException;
+
+import org.junit.Test;
+import org.springframework.web.client.RestTemplate;
 
 public class TestSimplifyJsonBody {
 
@@ -211,7 +211,8 @@ public class TestSimplifyJsonBody {
     @Test
     public void testBinay() throws Exception {
 
-        String actuals = getActuals("{\"body\":{\"binary\":\"@src/test/data/Un.png\"}}");
+        String actuals = getActuals(
+                "{\"body\":{\"binary\":\"@src/test/data/Un.png\"}}");
         assertNotNull(actuals);
 
     }
@@ -223,8 +224,8 @@ public class TestSimplifyJsonBody {
         assertEquals(expected, actual);
     }
 
-    private String getActuals(String input) throws UnRAVLException,
-            IOException, JsonProcessingException {
+    private String getActuals(String input)
+            throws UnRAVLException, IOException, JsonProcessingException {
         ApiCall apiCall = createApiCall(input);
         String actual = getRequestBodyContent(apiCall);
         return actual;
@@ -233,7 +234,7 @@ public class TestSimplifyJsonBody {
     private String getRequestBodyContent(ApiCall apiCall)
             throws UnRAVLException {
         apiCall.run();
-        byte [] bytes = apiCall.getRequestBody();
+        byte[] bytes = apiCall.getRequestBody();
         if (bytes == null) {
             return null;
         }
@@ -241,8 +242,8 @@ public class TestSimplifyJsonBody {
         return requestBodyString;
     }
 
-    private ApiCall createApiCall(String input) throws UnRAVLException,
-            IOException, JsonProcessingException {
+    private ApiCall createApiCall(String input)
+            throws UnRAVLException, IOException, JsonProcessingException {
         UnRAVLRuntime r = new UnRAVLRuntime();
         ObjectNode root = Json.object(Json.parse(input));
         RestTemplate restTemplate = new RestTemplate();

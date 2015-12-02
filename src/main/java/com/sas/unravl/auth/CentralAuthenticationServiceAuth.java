@@ -56,9 +56,9 @@ import org.apache.log4j.Logger;
  * The service ticket is appended as a query parameter to the end of the URI as
  * <code>&amp;ticket=&lt;<em>service-ticket</em>&gt;</code> or
  * <code>?ticket=&lt;<em>service-ticket</em>&gt;</code> as needed. The TGT
- * location is added to the environment as
- * <code>&lt;<em>hostname</em>&gt;.TGT</code> where hostname is taken from the
- * logon-URL value in the JSON specification
+ * location is added to the environment as <code>&lt;<em>hostname</em>
+ * &gt;.TGT</code> where hostname is taken from the logon-URL value in the JSON
+ * specification
  * <p>
  * If mock is true, this precondition will create a mock service ticket.
  *
@@ -76,8 +76,8 @@ public class CentralAuthenticationServiceAuth extends BaseUnRAVLAuth {
             .getLogger(CentralAuthenticationServiceAuth.class);
 
     @Override
-    public void authenticate(UnRAVL script, ObjectNode casAuthSpec, ApiCall call)
-            throws UnRAVLException {
+    public void authenticate(UnRAVL script, ObjectNode casAuthSpec,
+            ApiCall call) throws UnRAVLException {
         super.authenticate(script, casAuthSpec, call);
         authenticateAndCreateServiceTicket(casAuthSpec);
     }
@@ -159,8 +159,8 @@ public class CentralAuthenticationServiceAuth extends BaseUnRAVLAuth {
         try {
             HttpPost post = new HttpPost();
             post.setURI(new URI(tgt));
-            Header requestHeaders[] = new Header[] { new BasicHeader(
-                    "Content-Type", "text/plain") };
+            Header requestHeaders[] = new Header[] {
+                    new BasicHeader("Content-Type", "text/plain") };
             post.setHeaders(requestHeaders);
             String body = "service=" + Text.urlEncode(uri.toString());
             HttpEntity entity = new StringEntity(body);
@@ -171,8 +171,8 @@ public class CentralAuthenticationServiceAuth extends BaseUnRAVLAuth {
             // TGT, we should login again.
             int status = response.getStatusLine().getStatusCode();
             if (status != 200)
-                throw new UnRAVLException("Cannot get Service Ticket for "
-                        + uri + ", response returned " + status);
+                throw new UnRAVLException("Cannot get Service Ticket for " + uri
+                        + ", response returned " + status);
             String st = Text.utf8ToString(responseBody.toByteArray());
             return st;
         } finally {
@@ -190,8 +190,8 @@ public class CentralAuthenticationServiceAuth extends BaseUnRAVLAuth {
         cp.setRuntime(getScript().getRuntime());
         HostCredentials credentials = cp.getHostCredentials(host, auth, false);
         if (credentials == null)
-            throw new UnRAVLAssertionException("No CAS credentials for host "
-                    + host);
+            throw new UnRAVLAssertionException(
+                    "No CAS credentials for host " + host);
 
         String user = credentials.getUserName();
         String key = user + "." + host + ".TGT";
@@ -242,8 +242,8 @@ public class CentralAuthenticationServiceAuth extends BaseUnRAVLAuth {
         }
     }
 
-    private class CasAuthResponseHandler implements
-            ResponseHandler<HttpResponse> {
+    private class CasAuthResponseHandler
+            implements ResponseHandler<HttpResponse> {
         @Override
         public HttpResponse handleResponse(HttpResponse response)
                 throws ClientProtocolException, IOException {

@@ -55,19 +55,17 @@ public class JsonRequestBodyGenerator extends BaseUnRAVLRequestBodyGenerator {
                 if (ref instanceof JsonNode) {
                     body = Json.expand((JsonNode) ref, script);
                 } else {
-                    throw new UnRAVLException(
-                            String.format(
-                                    "Variable %s is not bound to a JSON value in 'json' body generator",
-                                    val));
+                    throw new UnRAVLException(String.format(
+                            "Variable %s is not bound to a JSON value in 'json' body generator",
+                            val));
                 }
             }
         } else if (json.isContainerNode()) {
             body = Json.expand(json, script);
         } else {
-            throw new UnRAVLException(
-                    String.format(
-                            "Unrecognized JSON value %s in 'json' body generator",
-                            json));
+            throw new UnRAVLException(String.format(
+                    "Unrecognized JSON value %s in 'json' body generator",
+                    json));
         }
         script.bind("requestBody", body);
         String jsonText = body.toString();
