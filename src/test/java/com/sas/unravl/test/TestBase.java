@@ -9,12 +9,13 @@ import com.sas.unravl.util.Json;
 import java.util.HashMap;
 
 import org.junit.Test;
+import org.springframework.web.client.RestTemplate;
 
 public class TestBase {
 
     public static UnRAVL scriptFixture() {
         UnRAVLRuntime r = new UnRAVLRuntime(envFixture());
-        UnRAVL script = new UnRAVL(r);
+        UnRAVL script = new UnRAVL(r, new RestTemplate());
         return script;
     }
 

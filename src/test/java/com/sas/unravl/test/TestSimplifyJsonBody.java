@@ -3,6 +3,11 @@ package com.sas.unravl.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.IOException;
+
+import org.junit.Test;
+import org.springframework.web.client.RestTemplate;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sas.unravl.ApiCall;
@@ -10,11 +15,6 @@ import com.sas.unravl.UnRAVL;
 import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.UnRAVLRuntime;
 import com.sas.unravl.util.Json;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import org.junit.Test;
 
 public class TestSimplifyJsonBody {
 
@@ -233,11 +233,11 @@ public class TestSimplifyJsonBody {
     private String getRequestBodyContent(ApiCall apiCall)
             throws UnRAVLException {
         apiCall.run();
-        ByteArrayOutputStream baos = apiCall.getRequestBody();
-        if (baos == null) {
+        byte [] bytes = apiCall.getRequestBody();
+        if (bytes == null) {
             return null;
         }
-        String requestBodyString = baos.toString();
+        String requestBodyString = new String(bytes);
         return requestBodyString;
     }
 
@@ -245,8 +245,9 @@ public class TestSimplifyJsonBody {
             IOException, JsonProcessingException {
         UnRAVLRuntime r = new UnRAVLRuntime();
         ObjectNode root = Json.object(Json.parse(input));
-        UnRAVL script = new UnRAVL(r, root);
-        ApiCall apiCall = new ApiCall(script);
+        RestTemplate restTemplate = new RestTemplate();
+        UnRAVL script = new UnRAVL(r, root, restTemplate);
+        ApiCall apiCall = new ApiCall(script, restTemplate);
         return apiCall;
     }
 }

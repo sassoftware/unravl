@@ -1,5 +1,15 @@
 package com.sas.unravl.assertions;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import org.apache.log4j.Logger;
+import org.springframework.http.HttpHeaders;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sas.unravl.ApiCall;
@@ -7,15 +17,6 @@ import com.sas.unravl.UnRAVL;
 import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
 import com.sas.unravl.util.Json;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-
-import org.apache.http.Header;
-import org.apache.log4j.Logger;
 
 /**
  * Asserts that HTTP response headers exists and that it matches a regular
@@ -41,13 +42,13 @@ public class HeadersAssertion extends BaseUnRAVLAssertion {
     public void check(UnRAVL current, ObjectNode assertion, Stage when,
             ApiCall call) throws UnRAVLAssertionException, UnRAVLException {
         super.check(current, assertion, when, call);
-        Header headers[] = call.getResponseHeaders();
+        HttpHeaders headers = call.getResponseHeaders();
         JsonNode spec = assertion.get("headers");
         check(spec, headers, current);
         return;
     }
 
-    private void check(JsonNode headerNode, Header[] headers, UnRAVL current)
+    private void check(JsonNode headerNode, HttpHeaders headers, UnRAVL current)
             throws UnRAVLException {
         for (Map.Entry<String, JsonNode> next : Json.fields(headerNode)) {
             String header = next.getKey();
@@ -56,16 +57,22 @@ public class HeadersAssertion extends BaseUnRAVLAssertion {
                 throw new UnRAVLException("header value " + valNode
                         + " is not a string (regular expression expected)");
             String pattern = current.expand(valNode.textValue());
-            Header h = findHeader(header, headers);
+            List<String> h = findHeader(header, headers);
             try {
-                Matcher matcher = Pattern.compile(pattern)
-                        .matcher(h.getValue());
-                if (!matcher.matches())
+                boolean found = false;
+                for (String hval : h) {
+                    Matcher matcher = Pattern.compile(pattern)
+                            .matcher(hval);
+                    if (matcher.matches()) {
+                        found = true;
+                        logger.trace("header " + header
+                                + " matches required pattern " + pattern);
+                    }
+                }
+                if (!found) {
                     throw new UnRAVLAssertionException("header " + header
                             + " does not match required pattern " + pattern);
-                else {
-                    logger.trace("header " + header
-                            + " matches required pattern " + pattern);
+
                 }
             } catch (PatternSyntaxException e) {
                 throw new UnRAVLException(
@@ -76,11 +83,12 @@ public class HeadersAssertion extends BaseUnRAVLAssertion {
 
     }
 
-    private Header findHeader(String header, Header[] headers)
+    private List<String> findHeader(String header, HttpHeaders headers)
             throws UnRAVLAssertionException {
-        for (Header h : headers)
-            if (h.getName().equalsIgnoreCase(header))
-                return h;
+        List<String> vals = headers.get(header);
+        if (vals != null) {
+            return vals;
+        }
         throw new UnRAVLAssertionException("Required header " + header
                 + " not found. Existing headers:" + Arrays.asList(headers));
     }

@@ -72,7 +72,7 @@ public class SchemaAssertion extends BaseUnRAVLAssertion {
         }
         if (values == null) {
             JsonNode responseBody = Json.parse(Text.utf8ToString(call
-                    .getResponseBody().toByteArray()));
+                    .getResponseBody()));
             validateValueAgainstSchema(responseBody, validatingSchema);
         } else if (values.isArray()) {
             Iterator<JsonNode> iter = values.elements();

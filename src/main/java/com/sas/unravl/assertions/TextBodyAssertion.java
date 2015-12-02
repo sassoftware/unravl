@@ -29,8 +29,7 @@ public class TextBodyAssertion extends BaseUnRAVLAssertion implements
         try {
             Text text = new Text(current, value);
             String expected = text.text();
-            String actual = Text.utf8ToString(call.getResponseBody()
-                    .toByteArray());
+            String actual = Text.utf8ToString(call.getResponseBody());
             try {
                 assertEquals(expected, actual);
             } catch (AssertionError a) {

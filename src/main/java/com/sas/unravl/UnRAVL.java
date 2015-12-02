@@ -1,15 +1,6 @@
 package com.sas.unravl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sas.unravl.assertions.UnRAVLAssertion;
-import com.sas.unravl.assertions.UnRAVLAssertion.Stage;
-import com.sas.unravl.extractors.UnRAVLExtractor;
-import com.sas.unravl.util.Json;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +8,17 @@ import java.util.Map;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sas.unravl.assertions.UnRAVLAssertion;
+import com.sas.unravl.assertions.UnRAVLAssertion.Stage;
+import com.sas.unravl.extractors.UnRAVLExtractor;
+import com.sas.unravl.util.Json;
 
 /**
  * An UnRAVL script object - this is a wrapper around a JSON UnRAVL script. An
@@ -56,14 +55,17 @@ public class UnRAVL {
     private ObjectNode root;
     private String name;
     private UnRAVL template;
-    private List<Header> requestHeaders;
+    private HttpHeaders requestHeaders;
     private Method method;
     private String uri;
     private List<UnRAVLExtractor> extractors;
+    private RestTemplate restTemplate;
+    
     static Logger logger = Logger.getLogger(UnRAVL.class);
 
-    public UnRAVL(UnRAVLRuntime runtime) {
+    public UnRAVL(UnRAVLRuntime runtime, RestTemplate restTemplate) {
         this.runtime = runtime;
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -81,7 +83,7 @@ public class UnRAVL {
      * @throws UnRAVLException
      *             if the script is invalid
      */
-    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script)
+    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script, RestTemplate restTemplate)
             throws JsonProcessingException, IOException, UnRAVLException {
         // TODO: create a new transient env for this test?
         // this.env = new Binding(env.getVariables());
@@ -93,7 +95,12 @@ public class UnRAVL {
                     "the runtime and script objects may not be null.");
         this.runtime = runtime;
         this.root = script;
+        this.restTemplate = restTemplate;
         initialize();
+    }
+    
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -167,7 +174,7 @@ public class UnRAVL {
         }
     }
 
-    public List<Header> getRequestHeaders() {
+    public HttpHeaders getRequestHeaders() {
         return requestHeaders;
     }
 
@@ -245,16 +252,16 @@ public class UnRAVL {
     }
 
     private void defineHeaders() throws UnRAVLException {
-        ArrayList<Header> headers = new ArrayList<Header>();
+        HttpHeaders headers = new HttpHeaders();
         defineHeaders(this, headers);
         this.requestHeaders = headers;
     }
 
-    public void addRequestHeader(Header header) {
-        requestHeaders.add(header);
+    public void addRequestHeader(String name, String val) {
+        requestHeaders.add(name, val);
     }
 
-    private void defineHeaders(UnRAVL from, List<Header> headers)
+    private void defineHeaders(UnRAVL from, HttpHeaders headers)
             throws UnRAVLException {
         if (from == null)
             return;
@@ -266,13 +273,12 @@ public class UnRAVL {
         for (Map.Entry<String, JsonNode> h : Json.fields(headersNode)) {
             String string = h.getKey();
             String val = expand(h.getValue().asText());
-            BasicHeader header = new BasicHeader(string, val);
-            headers.add(header);
+            headers.add(string, val);
         }
     }
 
     public ApiCall run() throws UnRAVLException, IOException {
-        ApiCall apiCall = new ApiCall(this);
+        ApiCall apiCall = new ApiCall(this, restTemplate);
         return apiCall.run();
     }
 
@@ -293,18 +299,22 @@ public class UnRAVL {
         return getRuntime().bound(varName);
     }
 
-    public boolean bodyIsTextual(Header headers[]) {
+    public boolean bodyIsTextual(HttpHeaders headers) {
         return headersMatchPattern(headers, TEXT_MEDIA_TYPES_REGEX);
     }
 
-    public boolean bodyIsJson(Header headers[]) {
+    public boolean bodyIsJson(HttpHeaders headers) {
         return headersMatchPattern(headers, JSON_MEDIA_TYPES_REGEX);
     }
 
-    private boolean headersMatchPattern(Header headers[], String pattern) {
-        for (Header h : headers)
-            if (h.getValue().matches(pattern))
-                return true;
+    private boolean headersMatchPattern(HttpHeaders headers, String pattern) {
+        for (String key : headers.keySet()) {
+            List<String> vals = headers.get(key);
+            for (String val : vals) {
+                if (val.matches(pattern))
+                    return true;
+            }
+        }
         return false;
     }
 

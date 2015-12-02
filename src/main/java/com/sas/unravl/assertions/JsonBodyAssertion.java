@@ -56,8 +56,7 @@ public class JsonBodyAssertion extends BaseUnRAVLAssertion implements
         ObjectMapper mapper = new ObjectMapper();
         String content;
         try {
-            content = current.expand(Text.utf8ToString(call.getResponseBody()
-                    .toByteArray()));
+            content = current.expand(Text.utf8ToString(call.getResponseBody()));
             JsonNode actual = mapper.readTree(content);
             JsonNode mapped = Json.expand(actual, current);
             expected = realize(expected, mapper);

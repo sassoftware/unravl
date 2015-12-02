@@ -30,7 +30,7 @@ public class BinaryBodyAssertion extends BaseUnRAVLAssertion implements
         try {
             Binary binary = new Binary(current, value);
             byte[] expected = binary.bytes();
-            byte[] actual = call.getResponseBody().toByteArray();
+            byte[] actual = call.getResponseBody();
             assertArrayEquals(expected, actual);
         } catch (IOException e1) {
             throw new UnRAVLException(e1.getMessage(), e1);

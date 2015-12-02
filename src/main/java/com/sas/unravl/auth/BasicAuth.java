@@ -1,6 +1,12 @@
 // Copyright (c) 2014, SAS Institute Inc., Cary, NC, USA, All Rights Reserved
 package com.sas.unravl.auth;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.apache.commons.codec.binary.Base64;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sas.unravl.ApiCall;
 import com.sas.unravl.UnRAVL;
@@ -9,13 +15,6 @@ import com.sas.unravl.annotations.UnRAVLAuthPlugin;
 import com.sas.unravl.assertions.UnRAVLAssertionException;
 import com.sas.unravl.generators.Text;
 import com.sas.unravl.util.Json;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.message.BasicHeader;
 
 /**
  * An auth element which provides basic authentication. This authenticates by
@@ -106,8 +105,7 @@ public class BasicAuth extends BaseUnRAVLAuth {
         credentials.clear();
         // TODO: use the ApiCall and add headers there instead of mutating the
         // script
-        getScript().addRequestHeader(
-                new BasicHeader("Authorization", "Basic " + creds));
+        getScript().addRequestHeader("Authorization", "Basic " + creds);
     }
 
 }

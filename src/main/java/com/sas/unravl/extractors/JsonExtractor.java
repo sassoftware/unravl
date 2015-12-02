@@ -55,8 +55,7 @@ public class JsonExtractor extends BaseUnRAVLExtractor {
             throw new UnRAVLException(
                     "json binding value must be a var name or a @file-name string");
         String to = target.textValue();
-        JsonNode json = Json.parse(Text.utf8ToString(call.getResponseBody()
-                .toByteArray()));
+        JsonNode json = Json.parse(Text.utf8ToString(call.getResponseBody()));
         Object result = unwrap ? Json.unwrap(json) : json;
         current.bind("responseBody", result);
         if (to.startsWith(UnRAVL.REDIRECT_PREFIX)) {

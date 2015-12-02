@@ -1,6 +1,13 @@
 // Copyright (c) 2014, SAS Institute Inc., Cary, NC, USA, All Rights Reserved
 package com.sas.unravl.extractors;
 
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,13 +17,6 @@ import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
 import com.sas.unravl.assertions.UnRAVLAssertionException;
 import com.sas.unravl.util.Json;
-
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.http.Header;
-import org.apache.log4j.Logger;
 
 /**
  * Extract headers from the HTTP response, place them in variables, and
@@ -139,14 +139,17 @@ public class HeadersExtractor extends BaseUnRAVLExtractor {
                             "Header pattern array must contain at least two values.");
                 headerName = a.get(0).textValue();
             }
-            Header header = call.getResponseHeader(headerName);
+            List<String> header = call.getResponseHeader(headerName);
             if (header == null)
                 throw new UnRAVLException("header not found for binding " + a);
-            logger.trace("header " + header.getName() + ":" + header.getValue());
-            String headerValue = header.getValue();
-            getScript().bind(varName, headerValue);
+            String hval = null;
+            for (String h : header) {
+                logger.trace("header " + headerName + ":" + h);
+                getScript().bind(varName, h);
+                hval = h;
+            }
             if (a != null)
-                bindHeaderByPattern(current, a, headerName, headerValue, 0);
+                bindHeaderByPattern(current, a, headerName, hval, 0);
         }
     }
 

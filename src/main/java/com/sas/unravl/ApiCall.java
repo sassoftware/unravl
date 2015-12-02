@@ -25,29 +25,21 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Encapsulate a runtime call to an API, as specified by an UnRAVL script. This
@@ -65,17 +57,18 @@ public class ApiCall {
     private static final String JSON_GENERATOR_KEY = "json";
 
     private UnRAVL script;
-    private ByteArrayOutputStream requestBody;
-    private ByteArrayOutputStream responseBody;
+    private byte[] requestBody;
+    private byte[] responseBody;
 
     private int httpStatus;
-    private Header responseHeaders[];
+    private HttpHeaders responseHeaders;
 
     private List<UnRAVLAssertion> passedAssertions, failedAssertions,
             skippedAssertions;
     private UnRAVLException exception;
     private Method method;
     private String uri;
+    private RestTemplate rest = new RestTemplate();
 
     private static final ObjectNode STATUS_ASSERTION = new ObjectNode(
             JsonNodeFactory.instance);
@@ -84,9 +77,9 @@ public class ApiCall {
         STATUS_ASSERTION.set("status", new TextNode("2.."));
     }
 
-    public ApiCall(UnRAVL script) throws UnRAVLException, IOException {
+    public ApiCall(UnRAVL script, RestTemplate restTemplate) throws UnRAVLException, IOException {
         this.script = script;
-
+        this.rest = restTemplate;
         passedAssertions = new ArrayList<UnRAVLAssertion>();
         failedAssertions = new ArrayList<UnRAVLAssertion>();
         skippedAssertions = new ArrayList<UnRAVLAssertion>();
@@ -94,6 +87,10 @@ public class ApiCall {
         script.getRuntime().addApiCall(this);
     }
 
+    public void setRestTemplate(RestTemplate rest) {
+        this.rest = rest;
+    }
+    
     public ApiCall run() throws UnRAVLException {
         try {
             if (getScript().isRunnable() && conditionalExecution()) {
@@ -209,14 +206,17 @@ public class ApiCall {
         if (body.isTextual() && !isVariableHoldingJson(body.asText())) {
             String s = script.expand(body.asText());
             if (!s.trim().startsWith(UnRAVL.REDIRECT_PREFIX)) {
-                requestBody = new ByteArrayOutputStream();
-                try {
-                    requestBody.write(s.getBytes("UTF-8"));
-                    requestBody.close();
-                } catch (IOException e) {
-                    throw new UnRAVLException(
-                            "Could not encode string using UTF-8 for body "
-                                    + body);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
+                try
+                {
+                    baos.write(s.getBytes("UTF-8"));
+                    baos.close();
+                    requestBody = baos.toByteArray();
+                }
+                catch (IOException e)
+                {
+                    throw new UnRAVLException("Could not encode string using UTF-8 for body "
+                            + body);
                 }
                 return;
             }
@@ -247,7 +247,7 @@ public class ApiCall {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Binary.copy(is, baos);
             baos.close();
-            requestBody = baos;
+            requestBody = baos.toByteArray();
         } catch (InstantiationException e) {
             throw new UnRAVLException(
                     "Could not instantiate body generator plugin for " + body);
@@ -318,37 +318,18 @@ public class ApiCall {
         return UnRAVL.statusAssertion(script);
     }
 
-    private HttpRequestBase newHttpRequest() throws UnRAVLException {
-        switch (script.getMethod()) {
-        case HEAD:
-            return new HttpHead();
-        case GET:
-            return new HttpGet();
-        case DELETE:
-            return new HttpDelete();
-        case PUT:
-            HttpPut put = new HttpPut();
-            attachBody(put);
-            return put;
-        case POST:
-            HttpPost post = new HttpPost();
-            attachBody(post);
-            return post;
-        case PATCH:
-            HttpPatch patch = new HttpPatch();
-            attachBody(patch);
-            return patch;
-        default:
+    private RequestEntity<String> newHttpRequest(URI apiUri, HttpHeaders headers) throws UnRAVLException, UnsupportedEncodingException {
+        try {
+          HttpMethod meth = HttpMethod.valueOf(script.getMethod().toString());
+          String body = requestBody == null ? null : new String(requestBody,"UTF-8");
+          return new RequestEntity<String>(body, headers, meth, apiUri);
+        } catch (Exception e) {
             throw new UnRAVLException("Unknown method " + script.getMethod());
         }
     }
 
-    public Header getResponseHeader(String headerName) {
-        for (Header h : responseHeaders) {
-            if (h.getName().equalsIgnoreCase(headerName))
-                return h;
-        }
-        return null;
+    public List<String> getResponseHeader(String headerName) {
+        return responseHeaders.get(headerName);
     }
 
     // read all the values in "env" and bind them to this instance's env
@@ -446,9 +427,8 @@ public class ApiCall {
         return getRuntime().bound(key);
     }
 
-    public InputStream getResponseBodyAsInputStream() {
-        ByteArrayInputStream i = new ByteArrayInputStream(getResponseBody()
-                .toByteArray());
+    public InputStream getResponseBodyAsInputStream() throws UnRAVLException {
+        ByteArrayInputStream i = new ByteArrayInputStream(getResponseBody());
         return i;
     }
 
@@ -463,41 +443,45 @@ public class ApiCall {
         long start = System.currentTimeMillis();
         String apiUri = script.getURI();
         apiUri = script.expand(apiUri);
-        CloseableHttpClient httpclient = HttpClients.createSystem();
-        HttpRequestBase request = newHttpRequest();
+        
+        
         try {
             setURI(apiUri);
             setMethod(script.getMethod());
+            RequestEntity<String> request = newHttpRequest(new URI(getURI()), script.getRequestHeaders());
             authenticate();
-            request.setURI(new URI(getURI()));
-
-            if (script.getRequestHeaders() != null)
-                request.setHeaders(script.getRequestHeaders().toArray(
-                        (new Header[script.getRequestHeaders().size()])));
-            log(request, request.getURI());
+            
+            log(request);
             if (isCanceled())
                 return;
-            ResponseHandler<HttpResponse> responseHandler = new UnravlResponseHandler();
-            HttpResponse response = httpclient
-                    .execute(request, responseHandler);
+            HttpStatus status;
+            HttpHeaders responseHeaders;
+            try {
+                ResponseEntity<String> response = rest.exchange(request, String.class);
+                status = response.getStatusCode();
+                responseBody = response.hasBody()
+                        ? responseBody = response.getBody().getBytes()
+                        : new byte[0];
+                responseHeaders = response.getHeaders();
+            } catch (HttpStatusCodeException e) {
+                status = e.getStatusCode();
+                responseBody = e.getResponseBodyAsByteArray() != null
+                        ? responseBody = e.getResponseBodyAsByteArray()
+                        : new byte[0];
+                responseHeaders = e.getResponseHeaders();
+            }
+            
             long end = System.currentTimeMillis();
             logger.info(script.getMethod() + " took " + (end - start)
-                    + "ms, returned HTTP status " + response);
-            setResponseHeaders(response.getAllHeaders());
-            log(response);
-            assertStatus(response);
-        } catch (ClientProtocolException e) {
-            throwException(e);
+                    + "ms, returned HTTP status " + status);
+            setResponseHeaders(responseHeaders);
+            httpStatus = status.value();
+            log(status, responseBody, responseHeaders);
+            assertStatus(status.value());
         } catch (IOException e) {
             throwException(e);
         } catch (URISyntaxException e) {
             throwException(e);
-        } finally {
-            try {
-                httpclient.close();
-            } catch (IOException e) {
-                throwException(e);
-            }
         }
     }
 
@@ -521,11 +505,11 @@ public class ApiCall {
         getRuntime().bind(varName, value);
     }
 
-    public ByteArrayOutputStream getRequestBody() {
+    public byte[] getRequestBody() {
         return requestBody;
     }
 
-    public ByteArrayOutputStream getResponseBody() {
+    public byte[] getResponseBody() {
         return responseBody;
     }
 
@@ -533,11 +517,11 @@ public class ApiCall {
         return httpStatus;
     }
 
-    public Header[] getResponseHeaders() {
+    public HttpHeaders getResponseHeaders() {
         return responseHeaders;
     }
 
-    public void setResponseHeaders(Header responseHeaders[]) {
+    public void setResponseHeaders(HttpHeaders responseHeaders) {
         this.responseHeaders = responseHeaders;
     }
 
@@ -545,14 +529,13 @@ public class ApiCall {
     // return getRuntime().getBindings();
     // }
 
-    private void assertStatus(HttpResponse response)
+    private void assertStatus(int httpStatus)
             throws UnRAVLAssertionException, UnRAVLException {
 
         StatusAssertion sa = new StatusAssertion();
         sa.setScript(script);
         sa.setScriptlet(STATUS_ASSERTION);
         try {
-            httpStatus = response.getStatusLine().getStatusCode();
             bind("status", new Integer(httpStatus));
             ObjectNode node = statusAssertion();
             if (node != null) {
@@ -599,35 +582,6 @@ public class ApiCall {
 
     private ObjectNode statusAssertion() throws UnRAVLException {
         return statusAssertion(script);
-    }
-
-    private void attachBody(HttpEntityEnclosingRequestBase method) {
-        if (requestBody != null) {
-            HttpEntity entity = new InputStreamEntity(new ByteArrayInputStream(
-                    requestBody.toByteArray()));
-            method.setEntity(entity);
-        }
-    }
-
-    private class UnravlResponseHandler implements
-            ResponseHandler<HttpResponse> {
-
-        @Override
-        public HttpResponse handleResponse(HttpResponse response)
-                throws ClientProtocolException, IOException {
-            if (response.getEntity() == null)
-                return response;
-            InputStream input = response.getEntity().getContent();
-            if (input != null) {
-                responseBody = new ByteArrayOutputStream();
-                Binary.copy(input, responseBody);
-                responseBody.close();
-            } else
-                responseBody = null;
-
-            return response;
-        }
-
     }
 
     private boolean runAssertions(Stage stage) throws UnRAVLException {
@@ -729,25 +683,33 @@ public class ApiCall {
                 + " must be a string, an object, or an array.");
     }
 
-    private void log(HttpRequestBase request, URI uri) {
+    private void log(RequestEntity<String> request) {
         logger.info(script.getMethod() + " " + uri);
-        for (Header h : request.getAllHeaders()) {
-            if (h.getName() == "Authorization") // Don't log easily decoded
-                                                // credentials
-                logger.info(h.getName() + ": ************");
-            else
-                logger.info(h);
+        HttpHeaders headers = request.getHeaders();
+        logHeaders(headers);
+        log("request body:", requestBody, request.getHeaders());
+    }
+
+    private void logHeaders(HttpHeaders headers) {
+        for (String key : headers.keySet()) {
+            List<String> vals = headers.get(key);
+            if ("Authorization".equalsIgnoreCase(key)) // Don't log easily decoded
+                // credentials
+                logger.info(key + ": ************");
+            else {
+                for (String val : vals) {
+                    logger.info(key + ": " + val);
+                }
+            }
         }
-        log("request body:", requestBody, request.getHeaders("Content-Type"));
     }
 
-    private void log(HttpResponse response) {
-        for (Header h : response.getAllHeaders())
-            logger.info(h);
-        log("response body:", responseBody, response.getHeaders("Content-Type"));
+    private void log(HttpStatus status, byte[] responseBody, HttpHeaders headers) {
+        logHeaders(headers);
+        log("response body:", responseBody, headers);
     }
 
-    private void log(String label, ByteArrayOutputStream bytes, Header[] headers) {
+    private void log(String label, byte[] bytes, HttpHeaders headers) {
         if (script.bodyIsTextual(headers))
             try {
                 if (bytes == null) {
@@ -761,17 +723,17 @@ public class ApiCall {
                         try {
                             ObjectMapper mapper = new ObjectMapper();
                             mapper.enable(SerializationFeature.INDENT_OUTPUT);
-                            JsonNode json = Json.parse(bytes.toString("UTF-8"));
+                            JsonNode json = Json.parse(new String(bytes, "UTF-8"));
                             ByteArrayOutputStream os = new ByteArrayOutputStream();
                             os.write(mapper.writeValueAsBytes(json));
                             os.close();
-                            bytes = os;
+                            bytes = os.toByteArray();
                         } catch (UnRAVLException e) {
                             // ignore parse/format errors; just print bytes w/o
                             // pretty print.
                         }
                     }
-                    bytes.writeTo(System.out);
+                    System.out.println(bytes);
                     System.out.println();
                 }
             } catch (IOException e) {

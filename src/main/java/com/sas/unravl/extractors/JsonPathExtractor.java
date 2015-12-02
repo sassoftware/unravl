@@ -101,8 +101,7 @@ public class JsonPathExtractor extends JsonExtractor {
         if (from == null) {
             // assert response body is valid JSON; extract JSON into
             // responseBody
-            from = Json.parse(Text.utf8ToString(call.getResponseBody()
-                    .toByteArray()));
+            from = Json.parse(Text.utf8ToString(call.getResponseBody()));
             script.bind("responseBody", from);
             fromObject = Json.unwrap(from);
         } else {

@@ -1,23 +1,5 @@
 package com.sas.unravl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.json.JsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import com.jayway.jsonpath.spi.mapper.MappingProvider;
-import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
-import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
-import com.sas.unravl.assertions.UnRAVLAssertion;
-import com.sas.unravl.assertions.UnRAVLAssertionException;
-import com.sas.unravl.generators.UnRAVLRequestBodyGenerator;
-import com.sas.unravl.util.Json;
-import com.sas.unravl.util.VariableResolver;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -37,6 +19,25 @@ import javax.script.SimpleBindings;
 import org.apache.log4j.Logger;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
+import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
+import com.sas.unravl.assertions.UnRAVLAssertion;
+import com.sas.unravl.assertions.UnRAVLAssertionException;
+import com.sas.unravl.generators.UnRAVLRequestBodyGenerator;
+import com.sas.unravl.util.Json;
+import com.sas.unravl.util.VariableResolver;
 
 /**
  * The runtime environment for running UnRAVL scripts. The runtime contains the
@@ -63,6 +64,8 @@ public class UnRAVLRuntime {
     private String scriptLanguage;
     private boolean canceled;
 
+    private RestTemplate restTemplate = new RestTemplate();
+    
     public UnRAVLRuntime() {
         this(new LinkedHashMap<String, Object>());
     }
@@ -77,6 +80,10 @@ public class UnRAVLRuntime {
         resetBindings();
     }
 
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+    
     /**
      * @return this runtime's default script language
      */
@@ -249,7 +256,7 @@ public class UnRAVLRuntime {
                                 "No such UnRAVL script named '%s'", name));
                     }
                 } else
-                    u = new UnRAVL(this, (ObjectNode) root);
+                    u = new UnRAVL(this, (ObjectNode) root, restTemplate);
                 label = u.getName();
                 u.run();
             } catch (UnRAVLAssertionException e) {
