@@ -43,8 +43,8 @@ import java.io.IOException;
  *
  */
 @UnRAVLAssertionPlugin("json")
-public class JsonBodyAssertion extends BaseUnRAVLAssertion implements
-        UnRAVLAssertion {
+public class JsonBodyAssertion extends BaseUnRAVLAssertion
+        implements UnRAVLAssertion {
 
     @Override
     public void check(UnRAVL current, ObjectNode assertion, Stage when,
@@ -56,8 +56,7 @@ public class JsonBodyAssertion extends BaseUnRAVLAssertion implements
         ObjectMapper mapper = new ObjectMapper();
         String content;
         try {
-            content = current.expand(Text.utf8ToString(call.getResponseBody()
-                    .toByteArray()));
+            content = current.expand(Text.utf8ToString(call.getResponseBody()));
             JsonNode actual = mapper.readTree(content);
             JsonNode mapped = Json.expand(actual, current);
             expected = realize(expected, mapper);
@@ -67,11 +66,13 @@ public class JsonBodyAssertion extends BaseUnRAVLAssertion implements
                         "Response body does not match expected. Received:"
                                 + actual);
         } catch (JsonProcessingException e) {
-            throw new UnRAVLException("Could not parse response body as JSON: "
-                    + e.getMessage(), e);
+            throw new UnRAVLException(
+                    "Could not parse response body as JSON: " + e.getMessage(),
+                    e);
         } catch (IOException e) {
-            throw new UnRAVLException("Could not parse response body as JSON: "
-                    + e.getMessage(), e);
+            throw new UnRAVLException(
+                    "Could not parse response body as JSON: " + e.getMessage(),
+                    e);
         }
 
         // Following JSONAssert fails - I get java.lang.NoClassDefFoundError:

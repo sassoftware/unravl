@@ -80,8 +80,8 @@ public class Binary {
      *             Some other exception occurred, including invalid JSON
      *             specification
      */
-    public Binary(UnRAVL script, JsonNode binarySpec) throws IOException,
-            UnRAVLException {
+    public Binary(UnRAVL script, JsonNode binarySpec)
+            throws IOException, UnRAVLException {
         this.script = script;
         build(binarySpec);
     }
@@ -104,8 +104,8 @@ public class Binary {
             BinaryNode b = (BinaryNode) node;
             bytes.write(b.binaryValue());
         } else {
-            throw new UnRAVLException("Invalid element " + node
-                    + " in binary element.");
+            throw new UnRAVLException(
+                    "Invalid element " + node + " in binary element.");
         }
     }
 
@@ -115,8 +115,8 @@ public class Binary {
             path = script.expand(path);
             buildFromStream(path);
         } else {
-            throw new UnRAVLException("Unrecognized element " + node
-                    + " in 'binary' input.");
+            throw new UnRAVLException(
+                    "Unrecognized element " + node + " in 'binary' input.");
         }
 
     }

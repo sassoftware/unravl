@@ -9,8 +9,7 @@ import java.util.regex.Pattern;
  * <li>Variables (bound with "env" elements or "groovy" elements) may be
  * referenced in strings via {varName} and replaced with their corresponding
  * string value.
- * <li>
- * If a variable is not bound, alternate text is substituted instead.
+ * <li>If a variable is not bound, alternate text is substituted instead.
  * <li>Any Unicode code point may be inserted by referencing it using U+nnnn
  * where nnnn is four hex digits naming a Unicode code point. For example,
  * {U+002D} will be replaced with the right curly (close) brace, '}', and
@@ -134,7 +133,8 @@ public class VariableResolver {
                     if (isValidVarName(candidateVarName)) {
                         if (env.containsKey(candidateVarName)) {
                             Object val = env.get(candidateVarName);
-                            result.append(val == null ? "null" : val.toString());
+                            result.append(
+                                    val == null ? "null" : val.toString());
                             scanToCloseBrace(false);
                         } else {
                             scanToCloseBrace(true);

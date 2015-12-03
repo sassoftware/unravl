@@ -16,15 +16,15 @@ import org.junit.Test;
 public class TestCancel extends TestBase {
 
     @Test
-    public void test() throws UnRAVLException, JsonProcessingException,
-            IOException {
+    public void test()
+            throws UnRAVLException, JsonProcessingException, IOException {
 
         UnRAVLRuntime rt = new UnRAVLRuntime();
 
         assertFalse(rt.isCanceled());
-        rt.execute(
-                mockJson("{ 'env' : { 'shouldBeSet' : true }  }"),
-                mockJson("{ 'bind' : { 'groovy' :  { 'canceledScript' : 'unravlScript.cancel(); true' }}}"),
+        rt.execute(mockJson("{ 'env' : { 'shouldBeSet' : true }  }"),
+                mockJson(
+                        "{ 'bind' : { 'groovy' :  { 'canceledScript' : 'unravlScript.cancel(); true' }}}"),
                 mockJson("{ 'env' : { 'shouldNotBeSet' : true }  }"));
         assertTrue(rt.isCanceled());
         assertEquals(Boolean.TRUE, rt.binding("shouldBeSet"));

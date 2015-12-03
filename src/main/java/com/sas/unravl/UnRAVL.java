@@ -9,7 +9,6 @@ import com.sas.unravl.extractors.UnRAVLExtractor;
 import com.sas.unravl.util.Json;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +16,9 @@ import java.util.Map;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * An UnRAVL script object - this is a wrapper around a JSON UnRAVL script. An
@@ -37,7 +36,7 @@ import org.apache.log4j.Logger;
  * execute methods.
  * <p>
  * This class only executes a single UnRAVL test, represented by a JSON object.
- * It does not execute a JSON array of scripts; use UnRAVLRuntime 
+ * It does not execute a JSON array of scripts; use UnRAVLRuntime
  * 
  * TODO: This class is too large and does too much. Refactor.
  *
@@ -56,14 +55,21 @@ public class UnRAVL {
     private ObjectNode root;
     private String name;
     private UnRAVL template;
-    private List<Header> requestHeaders;
+    private HttpHeaders requestHeaders;
     private Method method;
     private String uri;
     private List<UnRAVLExtractor> extractors;
+    private RestTemplate restTemplate;
+
     static Logger logger = Logger.getLogger(UnRAVL.class);
 
     public UnRAVL(UnRAVLRuntime runtime) {
+        this(runtime, (RestTemplate) null);
+    }
+    
+    public UnRAVL(UnRAVLRuntime runtime, RestTemplate restTemplate) {
         this.runtime = runtime;
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -81,8 +87,29 @@ public class UnRAVL {
      * @throws UnRAVLException
      *             if the script is invalid
      */
-    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script)
-            throws JsonProcessingException, IOException, UnRAVLException {
+    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script) throws JsonProcessingException,
+                    IOException, UnRAVLException {
+        this(runtime, script, null);
+    }
+    /**
+     * Create an instance
+     *
+     * @param runtime
+     *            the runtime environment; this may not be null
+     * @param script
+     *            The UnRAVL test object. To run an ArrayNode, use the execute
+     *            method in UnRAVLRuntime
+     * @param restTemplate the RestTemplate to use when invoking the API
+     * @throws JsonProcessingException
+     *             if the script cannot be parsed
+     * @throws IllegalArgumentException
+     *             if the arguments are null or if the node is not an ObjectNode
+     * @throws UnRAVLException
+     *             if the script is invalid
+     */
+    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script,
+            RestTemplate restTemplate) throws JsonProcessingException,
+                    IOException, UnRAVLException {
         // TODO: create a new transient env for this test?
         // this.env = new Binding(env.getVariables());
         // Unfortunately, unlike java.util.Properties,
@@ -93,7 +120,12 @@ public class UnRAVL {
                     "the runtime and script objects may not be null.");
         this.runtime = runtime;
         this.root = script;
+        this.restTemplate = restTemplate;
         initialize();
+    }
+
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -157,7 +189,8 @@ public class UnRAVL {
                 throw new UnRAVLException(
                         "array template values are not yet supported.");
             if (!tempNode.isTextual())
-                throw new UnRAVLException("template value must be a text node.");
+                throw new UnRAVLException(
+                        "template value must be a text node.");
             String templateName = expand(tempNode.textValue());
             if (!templateName.endsWith(TEMPLATE_EXTENSION))
                 templateName += TEMPLATE_EXTENSION;
@@ -167,7 +200,7 @@ public class UnRAVL {
         }
     }
 
-    public List<Header> getRequestHeaders() {
+    public HttpHeaders getRequestHeaders() {
         return requestHeaders;
     }
 
@@ -198,8 +231,8 @@ public class UnRAVL {
         defineHeaders();
     }
 
-    private void defineAPICall(UnRAVL script) throws UnRAVLException,
-            IOException {
+    private void defineAPICall(UnRAVL script)
+            throws UnRAVLException, IOException {
         if (script == null)
             return;
         if (script.method != null) {
@@ -218,16 +251,15 @@ public class UnRAVL {
                 node = script.root.get(m.toString().toLowerCase());
             if (node != null) {
                 if (method != null) {
-                    logger.warn(String
-                            .format("Warning: HTTP method %s found but method already defined as %s %s",
-                                    m, method, uri));
+                    logger.warn(String.format(
+                            "Warning: HTTP method %s found but method already defined as %s %s",
+                            m, method, uri));
                 }
                 method = m;
                 if (!node.isTextual())
-                    throw new UnRAVLException(
-                            String.format(
-                                    "URI for method %s must be a string; found %s instead.",
-                                    m, node));
+                    throw new UnRAVLException(String.format(
+                            "URI for method %s must be a string; found %s instead.",
+                            m, node));
                 uri = node.textValue();
             }
         }
@@ -245,16 +277,16 @@ public class UnRAVL {
     }
 
     private void defineHeaders() throws UnRAVLException {
-        ArrayList<Header> headers = new ArrayList<Header>();
+        HttpHeaders headers = new HttpHeaders();
         defineHeaders(this, headers);
         this.requestHeaders = headers;
     }
 
-    public void addRequestHeader(Header header) {
-        requestHeaders.add(header);
+    public void addRequestHeader(String name, String val) {
+        requestHeaders.add(name, val);
     }
 
-    private void defineHeaders(UnRAVL from, List<Header> headers)
+    private void defineHeaders(UnRAVL from, HttpHeaders headers)
             throws UnRAVLException {
         if (from == null)
             return;
@@ -266,13 +298,12 @@ public class UnRAVL {
         for (Map.Entry<String, JsonNode> h : Json.fields(headersNode)) {
             String string = h.getKey();
             String val = expand(h.getValue().asText());
-            BasicHeader header = new BasicHeader(string, val);
-            headers.add(header);
+            headers.add(string, val);
         }
     }
 
     public ApiCall run() throws UnRAVLException, IOException {
-        ApiCall apiCall = new ApiCall(this);
+        ApiCall apiCall = new ApiCall(this, restTemplate);
         return apiCall.run();
     }
 
@@ -293,18 +324,22 @@ public class UnRAVL {
         return getRuntime().bound(varName);
     }
 
-    public boolean bodyIsTextual(Header headers[]) {
+    public boolean bodyIsTextual(HttpHeaders headers) {
         return headersMatchPattern(headers, TEXT_MEDIA_TYPES_REGEX);
     }
 
-    public boolean bodyIsJson(Header headers[]) {
+    public boolean bodyIsJson(HttpHeaders headers) {
         return headersMatchPattern(headers, JSON_MEDIA_TYPES_REGEX);
     }
 
-    private boolean headersMatchPattern(Header headers[], String pattern) {
-        for (Header h : headers)
-            if (h.getValue().matches(pattern))
-                return true;
+    private boolean headersMatchPattern(HttpHeaders headers, String pattern) {
+        for (String key : headers.keySet()) {
+            List<String> vals = headers.get(key);
+            for (String val : vals) {
+                if (val.matches(pattern))
+                    return true;
+            }
+        }
         return false;
     }
 

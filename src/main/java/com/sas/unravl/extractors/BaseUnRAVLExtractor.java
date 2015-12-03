@@ -36,8 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David.Biesack@sas.com
  */
-public class BaseUnRAVLExtractor extends BaseUnRAVLPlugin implements
-        UnRAVLExtractor {
+public class BaseUnRAVLExtractor extends BaseUnRAVLPlugin
+        implements UnRAVLExtractor {
 
     protected static boolean unwrapOption(ObjectNode scriptlet)
             throws UnRAVLException {
@@ -52,8 +52,8 @@ public class BaseUnRAVLExtractor extends BaseUnRAVLPlugin implements
         if (wrap.isBoolean())
             return wrap.booleanValue();
         String msg = String.format(
-                "%s option in %s must be a Boolean value; found %s",
-                optionName, key(scriptlet), wrap);
+                "%s option in %s must be a Boolean value; found %s", optionName,
+                key(scriptlet), wrap);
         throw new UnRAVLException(msg);
     }
 

@@ -15,7 +15,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.message.BasicHeader;
 
 /**
  * An auth element which provides basic authentication. This authenticates by
@@ -89,8 +88,8 @@ public class BasicAuth extends BaseUnRAVLAuth {
         }
     }
 
-    private void basicAuth(URI uri, ObjectNode auth) throws UnRAVLException,
-            IOException {
+    private void basicAuth(URI uri, ObjectNode auth)
+            throws UnRAVLException, IOException {
         String host = uri.getHost();
         CredentialsProvider cp = getScript().getRuntime().getPlugins()
                 .getCredentialsProvider();
@@ -98,16 +97,15 @@ public class BasicAuth extends BaseUnRAVLAuth {
         HostCredentials credentials = cp.getHostCredentials(host, auth, mock);
 
         if (credentials == null)
-            throw new UnRAVLException("No Basic Auth credentials for host "
-                    + host);
+            throw new UnRAVLException(
+                    "No Basic Auth credentials for host " + host);
 
-        String creds = new Base64().encodeToString(Text.utf8(credentials
-                .getUserName() + ":" + credentials.getPassword()));
+        String creds = new Base64().encodeToString(Text.utf8(
+                credentials.getUserName() + ":" + credentials.getPassword()));
         credentials.clear();
         // TODO: use the ApiCall and add headers there instead of mutating the
         // script
-        getScript().addRequestHeader(
-                new BasicHeader("Authorization", "Basic " + creds));
+        getScript().addRequestHeader("Authorization", "Basic " + creds);
     }
 
 }

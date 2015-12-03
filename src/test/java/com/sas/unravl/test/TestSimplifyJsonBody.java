@@ -11,10 +11,10 @@ import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.UnRAVLRuntime;
 import com.sas.unravl.util.Json;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.springframework.web.client.RestTemplate;
 
 public class TestSimplifyJsonBody {
 
@@ -211,7 +211,8 @@ public class TestSimplifyJsonBody {
     @Test
     public void testBinay() throws Exception {
 
-        String actuals = getActuals("{\"body\":{\"binary\":\"@src/test/data/Un.png\"}}");
+        String actuals = getActuals(
+                "{\"body\":{\"binary\":\"@src/test/data/Un.png\"}}");
         assertNotNull(actuals);
 
     }
@@ -223,8 +224,8 @@ public class TestSimplifyJsonBody {
         assertEquals(expected, actual);
     }
 
-    private String getActuals(String input) throws UnRAVLException,
-            IOException, JsonProcessingException {
+    private String getActuals(String input)
+            throws UnRAVLException, IOException, JsonProcessingException {
         ApiCall apiCall = createApiCall(input);
         String actual = getRequestBodyContent(apiCall);
         return actual;
@@ -233,20 +234,21 @@ public class TestSimplifyJsonBody {
     private String getRequestBodyContent(ApiCall apiCall)
             throws UnRAVLException {
         apiCall.run();
-        ByteArrayOutputStream baos = apiCall.getRequestBody();
-        if (baos == null) {
+        byte[] bytes = apiCall.getRequestBody();
+        if (bytes == null) {
             return null;
         }
-        String requestBodyString = baos.toString();
+        String requestBodyString = new String(bytes);
         return requestBodyString;
     }
 
-    private ApiCall createApiCall(String input) throws UnRAVLException,
-            IOException, JsonProcessingException {
+    private ApiCall createApiCall(String input)
+            throws UnRAVLException, IOException, JsonProcessingException {
         UnRAVLRuntime r = new UnRAVLRuntime();
         ObjectNode root = Json.object(Json.parse(input));
-        UnRAVL script = new UnRAVL(r, root);
-        ApiCall apiCall = new ApiCall(script);
+        RestTemplate restTemplate = new RestTemplate();
+        UnRAVL script = new UnRAVL(r, root, restTemplate);
+        ApiCall apiCall = new ApiCall(script, restTemplate);
         return apiCall;
     }
 }

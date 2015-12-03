@@ -13,12 +13,13 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.junit.Test;
+import org.springframework.web.client.RestTemplate;
 
 public class TestExpand extends TestBase {
 
     @Test
-    public void expand() throws JsonProcessingException, IOException,
-            UnRAVLException {
+    public void expand()
+            throws JsonProcessingException, IOException, UnRAVLException {
         String template = "{time} is the time for {which} {who} to come to the aid of their {where}";
         UnRAVL script = TestBase.scriptFixture();
         String actual = script.expand(template);

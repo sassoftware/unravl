@@ -74,7 +74,7 @@ public class BaseUnRAVLAuth extends BaseUnRAVLPlugin implements UnRAVLAuth {
         StringBuilder b = new StringBuilder();
         b // .append(u.name())
           // .append(", ")
-        .append(getAuth().toString());
+                .append(getAuth().toString());
         return b.toString();
     }
 

@@ -36,7 +36,7 @@ public class BinaryExtractor extends BaseUnRAVLExtractor {
         if (!target.isTextual())
             throw new UnRAVLException(
                     "json binding value must be a var name or a @file-name string");
-        byte bytes[] = call.getResponseBody().toByteArray();
+        byte bytes[] = call.getResponseBody();
         current.bind("responseBody", bytes);
         String to = target.textValue();
         if (to.startsWith(UnRAVL.REDIRECT_PREFIX)) {

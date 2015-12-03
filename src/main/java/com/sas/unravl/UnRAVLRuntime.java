@@ -37,6 +37,7 @@ import javax.script.SimpleBindings;
 import org.apache.log4j.Logger;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * The runtime environment for running UnRAVL scripts. The runtime contains the
@@ -63,6 +64,8 @@ public class UnRAVLRuntime {
     private String scriptLanguage;
     private boolean canceled;
 
+    private RestTemplate restTemplate;
+
     public UnRAVLRuntime() {
         this(new LinkedHashMap<String, Object>());
     }
@@ -75,6 +78,18 @@ public class UnRAVLRuntime {
             bind(e.getKey().toString(), e.getValue());
         bind("failedAssertionCount", Integer.valueOf(0));
         resetBindings();
+    }
+
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+    
+    /**
+     * @return the instance set with {@link #setRestTemplate(RestTemplate)} or if that is null,
+     * the instance set in {@link UnRAVLPlugins}
+     */
+    public RestTemplate getRestTemplate() {
+        return restTemplate == null ? getPlugins().getRestTemplate() : restTemplate;
     }
 
     /**
@@ -167,7 +182,8 @@ public class UnRAVLRuntime {
             return;
 
         // Configure Spring. Works on Unix; fails on Windows?
-        String[] contextXml = new String[] { "/META-INF/spring/unravlApplicationContext.xml" };
+        String[] contextXml = new String[] {
+                "/META-INF/spring/unravlApplicationContext.xml" };
         ctx = new ClassPathXmlApplicationContext(contextXml);
         assert (ctx != null);
 
@@ -218,8 +234,8 @@ public class UnRAVLRuntime {
         return this;
     }
 
-    public void execute(JsonNode... roots) throws JsonProcessingException,
-            IOException, UnRAVLException {
+    public void execute(JsonNode... roots)
+            throws JsonProcessingException, IOException, UnRAVLException {
         execute(Arrays.asList(roots));
     }
 
@@ -231,8 +247,8 @@ public class UnRAVLRuntime {
             if (root.isTextual()) {
                 String ref = root.textValue();
                 if (ref.startsWith(UnRAVL.REDIRECT_PREFIX)) {
-                    String sublist = expand(ref
-                            .substring(UnRAVL.REDIRECT_PREFIX.length()));
+                    String sublist = expand(
+                            ref.substring(UnRAVL.REDIRECT_PREFIX.length()));
                     execute(read(sublist));
                     continue;
                 }
@@ -249,7 +265,7 @@ public class UnRAVLRuntime {
                                 "No such UnRAVL script named '%s'", name));
                     }
                 } else
-                    u = new UnRAVL(this, (ObjectNode) root);
+                    u = new UnRAVL(this, (ObjectNode) root, getRestTemplate());
                 label = u.getName();
                 u.run();
             } catch (UnRAVLAssertionException e) {
@@ -268,6 +284,7 @@ public class UnRAVLRuntime {
         }
 
     }
+
 
     public UnRAVLRuntime execute(String scriptFile) throws UnRAVLException {
         canceled = false;
@@ -399,11 +416,10 @@ public class UnRAVLRuntime {
         String separator = "";
         for (ApiCall call : calls) {
             UnRAVL script = call.getScript();
-            String title = "Script '"
-                    + script.getName()
-                    + "' "
-                    + (call.getMethod() == null ? "<no method>" : script
-                            .getMethod().toString()) + " "
+            String title = "Script '" + script.getName() + "' "
+                    + (call.getMethod() == null ? "<no method>"
+                            : script.getMethod().toString())
+                    + " "
                     + (call.getURI() == null ? "<no URI>" : call.getURI());
             System.out.print(separator);
             for (int i = title.length(); i > 0; i--)
@@ -412,9 +428,9 @@ public class UnRAVLRuntime {
             System.out.println(title);
 
             if (call.getException() != null) {
-                System.out.println("Caught exception running test "
-                        + script.getName() + " " + call.getMethod() + " "
-                        + call.getURI());
+                System.out.println(
+                        "Caught exception running test " + script.getName()
+                                + " " + call.getMethod() + " " + call.getURI());
                 System.out.println(call.getException().getMessage());
                 System.out.flush();
                 failed++;
@@ -433,13 +449,13 @@ public class UnRAVLRuntime {
         if (as.size() > 0) {
             System.out.println(as.size() + " " + label + ":");
             for (UnRAVLAssertion a : as) {
-                System.out.println(label + " " + a.getStage().getName() + " "
-                        + a);
+                System.out.println(
+                        label + " " + a.getStage().getName() + " " + a);
                 System.out.flush();
                 UnRAVLAssertionException e = a.getUnRAVLAssertionException();
                 if (e != null) {
-                    System.out.println(e.getClass().getName() + " "
-                            + e.getMessage());
+                    System.out.println(
+                            e.getClass().getName() + " " + e.getMessage());
                 }
             }
         }

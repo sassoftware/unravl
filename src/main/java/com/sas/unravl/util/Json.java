@@ -188,8 +188,8 @@ public class Json {
      */
     public static TextNode text(JsonNode node) throws UnRAVLException {
         if (!node.isTextual())
-            throw new UnRAVLException("Text node required when " + node
-                    + " found.");
+            throw new UnRAVLException(
+                    "Text node required when " + node + " found.");
         TextNode text = (TextNode) node;
         return text;
     }
@@ -211,8 +211,8 @@ public class Json {
             Map.Entry<String, JsonNode> first = iter.next();
             return first;
         } else
-            throw new UnRAVLException("Non-empty object required when " + node
-                    + " found.");
+            throw new UnRAVLException(
+                    "Non-empty object required when " + node + " found.");
     }
 
     /**
@@ -359,9 +359,9 @@ public class Json {
         Object result = val;
         ObjectMapper mapper = new ObjectMapper();
         if (val instanceof ObjectNode) {
-            result = mapper.convertValue((ObjectNode) val, Map.class);
+            result = mapper.convertValue(val, Map.class);
         } else if (val instanceof ArrayNode) {
-            result = mapper.convertValue((ObjectNode) val, List.class);
+            result = mapper.convertValue(val, List.class);
         } else if (val instanceof NullNode) {
             result = null;
         } else if (val instanceof BooleanNode) {

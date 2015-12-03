@@ -11,11 +11,11 @@ import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
 import com.sas.unravl.assertions.UnRAVLAssertionException;
 import com.sas.unravl.util.Json;
 
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.Header;
 import org.apache.log4j.Logger;
 
 /**
@@ -108,10 +108,9 @@ public class HeadersExtractor extends BaseUnRAVLExtractor {
         if (val.isObject()) {
             extractHeadesr(current, (ObjectNode) val, call);
         } else {
-            throw new UnRAVLException(
-                    String.format(
-                            "Unrecognized headers extractor: object expected but found: %s",
-                            val));
+            throw new UnRAVLException(String.format(
+                    "Unrecognized headers extractor: object expected but found: %s",
+                    val));
         }
     }
 
@@ -139,20 +138,23 @@ public class HeadersExtractor extends BaseUnRAVLExtractor {
                             "Header pattern array must contain at least two values.");
                 headerName = a.get(0).textValue();
             }
-            Header header = call.getResponseHeader(headerName);
+            List<String> header = call.getResponseHeader(headerName);
             if (header == null)
                 throw new UnRAVLException("header not found for binding " + a);
-            logger.trace("header " + header.getName() + ":" + header.getValue());
-            String headerValue = header.getValue();
-            getScript().bind(varName, headerValue);
+            String hval = null;
+            for (String h : header) {
+                logger.trace("header " + headerName + ":" + h);
+                getScript().bind(varName, h);
+                hval = h;
+            }
             if (a != null)
-                bindHeaderByPattern(current, a, headerName, headerValue, 0);
+                bindHeaderByPattern(current, a, headerName, hval, 0);
         }
     }
 
     private void bindHeaderByPattern(UnRAVL current, ArrayNode a,
             String headerName, String headerValue, int offset)
-            throws UnRAVLAssertionException {
+                    throws UnRAVLAssertionException {
         String varName;
         {
             String regex = current.expand(a.get(offset + 1).textValue());
@@ -166,9 +168,9 @@ public class HeadersExtractor extends BaseUnRAVLExtractor {
                     current.bind(varName, value);
                 }
             } else
-                throw new UnRAVLAssertionException("header pattern " + regex
-                        + " does not match " + headerName + " value "
-                        + headerValue);
+                throw new UnRAVLAssertionException(
+                        "header pattern " + regex + " does not match "
+                                + headerName + " value " + headerValue);
         }
     }
 

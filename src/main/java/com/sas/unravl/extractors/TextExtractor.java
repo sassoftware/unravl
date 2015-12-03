@@ -46,7 +46,7 @@ public class TextExtractor extends BaseUnRAVLExtractor {
                     "json binding value must be a var name or a @file-name string");
         String to = target.textValue();
 
-        String text = Text.utf8ToString(call.getResponseBody().toByteArray());
+        String text = Text.utf8ToString(call.getResponseBody());
         current.bind("responseBody", text);
         if (to.startsWith(UnRAVL.REDIRECT_PREFIX)) {
             String where = to.substring(UnRAVL.REDIRECT_PREFIX.length());

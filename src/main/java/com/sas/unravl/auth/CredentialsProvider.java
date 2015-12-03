@@ -60,7 +60,7 @@ public interface CredentialsProvider {
      */
     public abstract HostCredentials getHostCredentials(String host,
             String userName, String password, boolean mock)
-            throws FileNotFoundException, IOException;
+                    throws FileNotFoundException, IOException;
 
     public void setRuntime(UnRAVLRuntime runtime);
 }

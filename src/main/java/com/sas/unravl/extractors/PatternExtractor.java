@@ -74,14 +74,12 @@ public class PatternExtractor extends BaseUnRAVLExtractor {
         super.extract(current, extractor, call);
         ArrayNode a = Json.array(Json.firstFieldValue(extractor));
         if (a.size() < 3)
-            throw new UnRAVLException(
-                    "pattern extractor "
-                            + a
-                            + " must have at least three strings: [var-name pattern fieldName]");
+            throw new UnRAVLException("pattern extractor " + a
+                    + " must have at least three strings: [var-name pattern fieldName]");
         for (int i = 1; i < a.size(); i++) {
             if (!a.get(i).isTextual())
-                throw new UnRAVLException("pattern extractor " + a
-                        + " must be all strings");
+                throw new UnRAVLException(
+                        "pattern extractor " + a + " must be all strings");
             if (i > 1) {
                 getCall().unbind(a.get(i).textValue());
             }
@@ -95,7 +93,8 @@ public class PatternExtractor extends BaseUnRAVLExtractor {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(text);
         if (matcher.matches()) {
-            for (int i = 1, v = 2; i <= matcher.groupCount() && v < a.size(); i++, v++) {
+            for (int i = 1, v = 2; i <= matcher.groupCount()
+                    && v < a.size(); i++, v++) {
                 value = a.get(v).textValue();
                 String res = matcher.group(i);
                 current.bind(value, res);

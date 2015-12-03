@@ -84,10 +84,9 @@ public class BaseScriptExtractor extends BaseUnRAVLExtractor {
             try {
                 String name = e.getKey();
                 if (!(sourceNode.isTextual() || sourceNode.isArray())) {
-                    throw new UnRAVLException(
-                            key(scriptlet)
-                                    + " extractor requires a string or array of strings, found "
-                                    + sourceNode);
+                    throw new UnRAVLException(key(scriptlet)
+                            + " extractor requires a string or array of strings, found "
+                            + sourceNode);
                 }
                 String expressionString = new Text(unravl, sourceNode).text();
                 expressionString = call.getScript().expand(expressionString);

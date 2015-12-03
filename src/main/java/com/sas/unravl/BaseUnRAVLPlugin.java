@@ -44,9 +44,8 @@ public abstract class BaseUnRAVLPlugin implements UnRAVLPlugin {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * com.sas.unravl.UnRAVLPlugin#setScriptlet(org.codehaus.jackson.node.ObjectNode
-     * )
+     * @see com.sas.unravl.UnRAVLPlugin#setScriptlet(org.codehaus.jackson.node.
+     * ObjectNode )
      */
     @Override
     public void setScriptlet(ObjectNode scriptlet) {
