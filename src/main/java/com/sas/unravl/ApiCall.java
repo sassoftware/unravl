@@ -108,7 +108,7 @@ public class ApiCall {
     }
 
     public void setRestTemplate(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate == null ? script.getRuntime().getPlugins().getRestTemplate() : restTemplate;
+        this.restTemplate = restTemplate == null ? script.getRuntime().getRestTemplate() : restTemplate;
     }
 
     public ApiCall run() throws UnRAVLException {

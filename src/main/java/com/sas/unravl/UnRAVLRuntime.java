@@ -64,7 +64,7 @@ public class UnRAVLRuntime {
     private String scriptLanguage;
     private boolean canceled;
 
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
 
     public UnRAVLRuntime() {
         this(new LinkedHashMap<String, Object>());
@@ -82,6 +82,14 @@ public class UnRAVLRuntime {
 
     public void setRestTemplate(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+    }
+    
+    /**
+     * @return the instance set with {@link #setRestTemplate(RestTemplate)} or if that is null,
+     * the instance set in {@link UnRAVLPlugins}
+     */
+    public RestTemplate getRestTemplate() {
+        return restTemplate == null ? getPlugins().getRestTemplate() : restTemplate;
     }
 
     /**
@@ -257,7 +265,7 @@ public class UnRAVLRuntime {
                                 "No such UnRAVL script named '%s'", name));
                     }
                 } else
-                    u = new UnRAVL(this, (ObjectNode) root, restTemplate);
+                    u = new UnRAVL(this, (ObjectNode) root, getRestTemplate());
                 label = u.getName();
                 u.run();
             } catch (UnRAVLAssertionException e) {
@@ -276,6 +284,7 @@ public class UnRAVLRuntime {
         }
 
     }
+
 
     public UnRAVLRuntime execute(String scriptFile) throws UnRAVLException {
         canceled = false;
