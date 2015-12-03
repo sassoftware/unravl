@@ -29,7 +29,7 @@ public class TestBinary extends TestBase {
     private void testBinary(String json, byte expected[])
             throws IOException, UnRAVLException {
         ObjectNode node = Json.object(mockJson(json));
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         Binary binary = new Binary(script, node, "binary");
         byte actual[] = binary.bytes();
         assertArrayEquals(expected, actual);
@@ -38,7 +38,7 @@ public class TestBinary extends TestBase {
     @Test(expected = IOException.class)
     public void noSuchFile() throws IOException, UnRAVLException {
         ObjectNode node = Json.object(mockJson("{'binary' : '@noSuchFile' }"));
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         new Binary(script, node, "binary");
     }
 
@@ -46,7 +46,7 @@ public class TestBinary extends TestBase {
     public void noSuchURL() throws IOException, UnRAVLException {
         ObjectNode node = Json.object(mockJson(
                 "{'binary' : '@scheme://host:9090/no/such/resource.ext' }"));
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         new Binary(script, node, "binary");
     }
 

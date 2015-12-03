@@ -18,7 +18,7 @@ public class TestText extends TestBase {
     @Test
     public void simpleText() throws IOException, UnRAVLException {
         JsonNode node = mockJson("{ 'text' : 'plain text' }");
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         Text t = new Text(script, node, "text");
         assertEquals("plain text", t.text());
     }
@@ -26,7 +26,7 @@ public class TestText extends TestBase {
     @Test
     public void arrayText() throws IOException, UnRAVLException {
         JsonNode node = mockJson("{ 'text' : [ 'A', 'B', 'C' ] }");
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         Text t = new Text(script, node, "text");
         assertEquals("A\nB\nC", t.text());
     }
@@ -36,7 +36,7 @@ public class TestText extends TestBase {
         // { "text" : [ "A", "@src/test/java/B.txt", [ "C" ] ] }
         JsonNode node = mockJson(
                 "{ \"text\" : [ 'A', '@src/test/java/B.txt', [ 'C' ] ] }");
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         Text t = new Text(script, node, "text");
         // B.txt has a new line also, and newlines between elements
         // /.gitattributes sets B.txt line endings to Unix \n
@@ -47,7 +47,7 @@ public class TestText extends TestBase {
     @Test(expected = IOException.class)
     public void noSuchFile() throws IOException, UnRAVLException {
         JsonNode node = mockJson("{'text' : '@noSuchFile' }");
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         new Text(script, node, "text");
     }
 
@@ -55,7 +55,7 @@ public class TestText extends TestBase {
     public void noSuchURL() throws IOException, UnRAVLException {
         JsonNode node = mockJson(
                 "{'text' : '@@scheme://host:9090/no/such/resource.ext' }");
-        UnRAVL script = new UnRAVL(new UnRAVLRuntime(), new RestTemplate());
+        UnRAVL script = scriptFixture();
         new Text(script, node, "text");
     }
 

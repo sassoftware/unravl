@@ -15,7 +15,7 @@ public class TestBase {
 
     public static UnRAVL scriptFixture() {
         UnRAVLRuntime r = new UnRAVLRuntime(envFixture());
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
         return script;
     }
 

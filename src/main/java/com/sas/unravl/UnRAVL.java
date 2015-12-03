@@ -63,6 +63,10 @@ public class UnRAVL {
 
     static Logger logger = Logger.getLogger(UnRAVL.class);
 
+    public UnRAVL(UnRAVLRuntime runtime) {
+        this(runtime, (RestTemplate) null);
+    }
+    
     public UnRAVL(UnRAVLRuntime runtime, RestTemplate restTemplate) {
         this.runtime = runtime;
         this.restTemplate = restTemplate;
@@ -76,6 +80,26 @@ public class UnRAVL {
      * @param script
      *            The UnRAVL test object. To run an ArrayNode, use the execute
      *            method in UnRAVLRuntime
+     * @throws JsonProcessingException
+     *             if the script cannot be parsed
+     * @throws IllegalArgumentException
+     *             if the arguments are null or if the node is not an ObjectNode
+     * @throws UnRAVLException
+     *             if the script is invalid
+     */
+    public UnRAVL(UnRAVLRuntime runtime, ObjectNode script) throws JsonProcessingException,
+                    IOException, UnRAVLException {
+        this(runtime, script, null);
+    }
+    /**
+     * Create an instance
+     *
+     * @param runtime
+     *            the runtime environment; this may not be null
+     * @param script
+     *            The UnRAVL test object. To run an ArrayNode, use the execute
+     *            method in UnRAVLRuntime
+     * @param restTemplate the RestTemplate to use when invoking the API
      * @throws JsonProcessingException
      *             if the script cannot be parsed
      * @throws IllegalArgumentException

@@ -81,7 +81,7 @@ public class TestExpand extends TestBase {
         env.put("host", "http://maps.appleapis.com");
 
         UnRAVLRuntime r = new UnRAVLRuntime(env);
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
 
         String in = "{host|http://maps.googleapis.com}";
 
@@ -131,7 +131,7 @@ public class TestExpand extends TestBase {
         env.put("host", "http://maps.appleapis.com");
 
         UnRAVLRuntime r = new UnRAVLRuntime(env);
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
 
         String in = "{host|http://maps.googleapis.com}/maps/api/elevation/json?locations=18.5202,73.8567";
 
@@ -171,7 +171,7 @@ public class TestExpand extends TestBase {
         env.put("altitude", "rise");
 
         UnRAVLRuntime r = new UnRAVLRuntime(env);
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
 
         String in = "{host|http://maps.googleapis.com}/maps/api/{altitude|elevation}/json?locations=18.5202,73.8567";
 
@@ -228,7 +228,7 @@ public class TestExpand extends TestBase {
                                                     // URL fragment
 
         UnRAVLRuntime r = new UnRAVLRuntime(env);
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
 
         String in = "api/models?{pagination|start={start|0}&limit={limit|25}}";
 
@@ -250,7 +250,7 @@ public class TestExpand extends TestBase {
         env.put("start", "10");// note empty spaces around URL fragment
 
         UnRAVLRuntime r = new UnRAVLRuntime(env);
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
 
         String in = "api/models?{pagination|start={start|0}&limit={limit|25}}";
 
@@ -272,7 +272,7 @@ public class TestExpand extends TestBase {
         env.put("limit", "50");
 
         UnRAVLRuntime r = new UnRAVLRuntime(env);
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
 
         String in = "api/models?{pagination|start={start|0}&limit={limit|25}}";
 
@@ -294,7 +294,7 @@ public class TestExpand extends TestBase {
         env.put("limit", "50");
 
         UnRAVLRuntime r = new UnRAVLRuntime(env);
-        UnRAVL script = new UnRAVL(r, new RestTemplate());
+        UnRAVL script = new UnRAVL(r);
 
         String in = "{host|http://localhost:9090}/api/models?{pagination|start={start|0}&limit={limit|25}}";
 

@@ -68,7 +68,7 @@ public class ApiCall {
     private UnRAVLException exception;
     private Method method;
     private String uri;
-    private RestTemplate rest = new RestTemplate();
+    private RestTemplate restTemplate = new RestTemplate();
 
     private static final ObjectNode STATUS_ASSERTION = new ObjectNode(
             JsonNodeFactory.instance);
@@ -77,10 +77,29 @@ public class ApiCall {
         STATUS_ASSERTION.set("status", new TextNode("2.."));
     }
 
+    /**
+     * Create a new instance to execute an API call for an UnRAVL script
+     * Calls this(UnRAVL script, new RestTemplate())
+     * @param script the UnRAVL script object
+     * @throws UnRAVLException if there is a runtime error running the script
+     * @throws IOException if there is a I/O error running the script
+     */
+    public ApiCall(UnRAVL script)
+            throws UnRAVLException, IOException {
+        this(script, null);
+    }
+    
+    /**
+     * Create a new instance to execute an API call for an UnRAVL script
+     * @param script the UnRAVL script object; may not be null
+     * @param restTemplate the instance to use to make API calls; may be null (use the default from UnRAVLPlugins)
+     * @throws UnRAVLException if there is a runtime error running the script
+     * @throws IOException if there is a I/O error running the script
+     */
     public ApiCall(UnRAVL script, RestTemplate restTemplate)
             throws UnRAVLException, IOException {
         this.script = script;
-        this.rest = restTemplate;
+        setRestTemplate(restTemplate); // set this after setting script
         passedAssertions = new ArrayList<UnRAVLAssertion>();
         failedAssertions = new ArrayList<UnRAVLAssertion>();
         skippedAssertions = new ArrayList<UnRAVLAssertion>();
@@ -88,8 +107,8 @@ public class ApiCall {
         script.getRuntime().addApiCall(this);
     }
 
-    public void setRestTemplate(RestTemplate rest) {
-        this.rest = rest;
+    public void setRestTemplate(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate == null ? script.getRuntime().getPlugins().getRestTemplate() : restTemplate;
     }
 
     public ApiCall run() throws UnRAVLException {
@@ -459,7 +478,7 @@ public class ApiCall {
             HttpStatus status;
             HttpHeaders responseHeaders;
             try {
-                ResponseEntity<String> response = rest.exchange(request,
+                ResponseEntity<String> response = restTemplate.exchange(request,
                         String.class);
                 status = response.getStatusCode();
                 responseBody = response.hasBody()
