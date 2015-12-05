@@ -153,6 +153,7 @@ public class Binary {
     public static void copy(InputStream in, OutputStream out)
             throws IOException {
 
+        // We could use Apache commons-io IOUtils.copy(in,out);
         byte buffer[] = new byte[BUFSIZE];
         BufferedInputStream bis = new BufferedInputStream(in);
         BufferedOutputStream bos = new BufferedOutputStream(out);

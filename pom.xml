@@ -23,7 +23,6 @@
       <jackson.core.utils.version>1.8</jackson.core.utils.version>
       <json.path.version>2.1.0</json.path.version>
       <slf4j.version>1.7.13</slf4j.version>
-      <commons.io.version>2.4</commons.io.version>
    </properties>
 
    <scm>
@@ -233,11 +232,6 @@
          <groupId>log4j</groupId>
          <artifactId>log4j</artifactId>
          <version>${log4j.version}</version>
-      </dependency>
-      <dependency>
-         <groupId>commons-io</groupId>
-         <artifactId>commons-io</artifactId>
-         <version>${commons.io.version}</version>
       </dependency>
       <dependency>
          <groupId>junit</groupId>

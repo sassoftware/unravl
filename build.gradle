@@ -22,7 +22,6 @@ ext {
     jsonSchemaCoreVersion = "1.2.5"
     jacksonCoreUtilsVersion = "1.8"
     slf4jVersion = "1.+"
-    commonsIoVersion = "2.4"
 }
 
 sourceCompatibility = 1.7
@@ -52,7 +51,6 @@ dependencies {
     compile group: 'com.github.fge', name: 'jackson-coreutils', version: jacksonCoreUtilsVersion
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: jsonPathVersion
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: slf4jVersion
-    compile group: 'commons-io', name: 'commons-io', version: commonsIoVersion
     
     testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-jaxb-annotations', version: jacksonVersion
     testCompile group: 'junit', name: 'junit', version: junitVersion
