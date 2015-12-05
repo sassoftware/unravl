@@ -1,5 +1,28 @@
 package com.sas.unravl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
+import org.apache.log4j.Logger;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
+
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,30 +43,6 @@ import com.sas.unravl.generators.Binary;
 import com.sas.unravl.generators.JsonRequestBodyGenerator;
 import com.sas.unravl.generators.UnRAVLRequestBodyGenerator;
 import com.sas.unravl.util.Json;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
-import org.apache.log4j.Logger;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Encapsulate a runtime call to an API, as specified by an UnRAVL script. This
@@ -433,55 +432,78 @@ public class ApiCall {
         setMethod(script.getMethod());
         setURI(script.expand(script.getURI()));
         RestTemplate restTemplate = getRuntime().getPlugins().getRestTemplate();
-        executeAPIWithRestTemplate(restTemplate);
+        HttpHeaders headers = mapHeaders(script.getRequestHeaders());
+        executeAPIWithRestTemplate(restTemplate, headers);
     }
 
     // ApiCall originally invoked the API via Apache HTTP Client
     // and the members of ApiCall still reflect that.
     // If invoking with RestTemplate, we must map between the
     // Apache Headers and Spring headers representations.
-    private void executeAPIWithRestTemplate(RestTemplate restTemplate)
-            throws UnRAVLException {
-        long start = System.currentTimeMillis();
-
-        try {
-            RequestEntity<String> request = newHttpRequest(new URI(getURI()),
-                    mapHeaders(script.getRequestHeaders()));
-            authenticate();
-            logger.info(script.getMethod() + " " + getURI());
-            log("Request body:", requestBody, "Request headers:",
-                    request.getHeaders());
-            HttpStatus status;
-            HttpHeaders responseHeaders;
-            responseBody = new ByteArrayOutputStream();
-            try {
-                ResponseEntity<String> response = restTemplate.exchange(request,
-                        String.class);
-                status = response.getStatusCode();
-                if (response.hasBody())
-                    responseBody.write(response.getBody().getBytes());
-                responseHeaders = response.getHeaders();
-            } catch (HttpStatusCodeException e) {
-                status = e.getStatusCode();
-                if (e.getResponseBodyAsByteArray() != null)
-                    responseBody.write(e.getResponseBodyAsByteArray());
-                responseHeaders = e.getResponseHeaders();
+    private void executeAPIWithRestTemplate(RestTemplate restTemplate,
+            final HttpHeaders headers) throws UnRAVLException {
+        
+        // We're using the requestcallback here and responseextractor below in 
+        // case the request or response is binary.
+        final RequestCallback requestCallback = new RequestCallback() {
+            @Override
+           public void doWithRequest(final ClientHttpRequest request) throws IOException {
+                request.getHeaders().putAll(headers);
+                if (requestBody != null)
+                    request.getBody().write(requestBody.toByteArray());;
             }
-            long end = System.currentTimeMillis();
-            logger.info(script.getMethod() + " took " + (end - start)
-                    + "ms, returned HTTP status " + status);
-            setResponseHeaders(mapHeaders(responseHeaders));
-            httpStatus = status.value();
-            log("Response body:", responseBody, "Response headers:",
-                    responseHeaders);
-            assertStatus(status.value());
+       };
+       ResponseExtractor<InternalResponse> responseExtractor =
+            new ResponseExtractor<InternalResponse>() {
+                @Override
+                public InternalResponse extractData(ClientHttpResponse response)
+                        throws IOException {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    IOUtils.copy(response.getBody(), baos);
+                    return new InternalResponse(response.getStatusCode(), baos.toByteArray(), response.getHeaders());
+                }
+            };
+        try {
+            authenticate();
         } catch (IOException e) {
             throwException(e);
-        } catch (URISyntaxException e) {
+        }
+
+        long start = System.currentTimeMillis();
+        InternalResponse response = restTemplate.execute(getURI(),
+                HttpMethod.valueOf(method.name()), requestCallback,
+                responseExtractor);
+        setResponseHeaders(mapHeaders(response.headers));
+        httpStatus = response.status.value();
+        responseBody = new ByteArrayOutputStream();
+        try {
+            responseBody.write(response.responseBody);
+        } catch (IOException e) {
             throwException(e);
         }
+        long end = System.currentTimeMillis();
+
+        logger.info(script.getMethod() + " took " + (end - start)
+                + "ms, returned HTTP status " + response.status);
+        log("Response body:", responseBody, "Response headers:",
+                response.headers);
+        assertStatus(response.status.value());
     }
 
+    private class InternalResponse {
+        private HttpStatus status;
+        private byte [] responseBody;
+        private HttpHeaders headers;
+        
+        public InternalResponse(HttpStatus status, byte[] responseBody,
+                HttpHeaders headers) {
+            super();
+            this.status = status;
+            this.responseBody = responseBody;
+            this.headers = headers;
+        }
+    }
+    
     // Convert from Apache Headers Spring Headers
     private HttpHeaders mapHeaders(List<Header> requestHeaders) {
         HttpHeaders headers = new HttpHeaders();
@@ -501,20 +523,6 @@ public class ApiCall {
             }
         }
         return h.toArray(new Header[h.size()]);
-    }
-
-    private RequestEntity<String> newHttpRequest(URI apiUri,
-            HttpHeaders headers)
-                    throws UnRAVLException, UnsupportedEncodingException {
-        HttpMethod meth;
-        try {
-            meth = HttpMethod.valueOf(script.getMethod().toString());
-        } catch (Exception e) {
-            throw new UnRAVLException("Unknown method " + script.getMethod());
-        }
-        String body = requestBody == null ? null
-                : new String(requestBody.toByteArray(), "UTF-8");
-        return new RequestEntity<String>(body, headers, meth, apiUri);
     }
 
     private void setMethod(Method method) {
