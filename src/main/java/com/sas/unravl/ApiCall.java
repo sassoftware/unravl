@@ -25,29 +25,23 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Encapsulate a runtime call to an API, as specified by an UnRAVL script. This
@@ -318,31 +312,6 @@ public class ApiCall {
         return UnRAVL.statusAssertion(script);
     }
 
-    private HttpRequestBase newHttpRequest() throws UnRAVLException {
-        switch (script.getMethod()) {
-        case HEAD:
-            return new HttpHead();
-        case GET:
-            return new HttpGet();
-        case DELETE:
-            return new HttpDelete();
-        case PUT:
-            HttpPut put = new HttpPut();
-            attachBody(put);
-            return put;
-        case POST:
-            HttpPost post = new HttpPost();
-            attachBody(post);
-            return post;
-        case PATCH:
-            HttpPatch patch = new HttpPatch();
-            attachBody(patch);
-            return patch;
-        default:
-            throw new UnRAVLException("Unknown method " + script.getMethod());
-        }
-    }
-
     public Header getResponseHeader(String headerName) {
         for (Header h : responseHeaders) {
             if (h.getName().equalsIgnoreCase(headerName))
@@ -460,45 +429,102 @@ public class ApiCall {
                     + " does not define an HTTP method or URI.");
             return;
         }
-        long start = System.currentTimeMillis();
-        String apiUri = script.getURI();
-        apiUri = script.expand(apiUri);
-        CloseableHttpClient httpclient = HttpClients.createSystem();
-        HttpRequestBase request = newHttpRequest();
-        try {
-            setURI(apiUri);
-            setMethod(script.getMethod());
-            authenticate();
-            request.setURI(new URI(getURI()));
+        setMethod(script.getMethod());
+        setURI(script.expand(script.getURI()));
+        RestTemplate restTemplate = getRuntime().getPlugins().getRestTemplate();
+        HttpHeaders headers = mapHeaders(script.getRequestHeaders());
+        executeAPIWithRestTemplate(restTemplate, headers);
+    }
 
-            if (script.getRequestHeaders() != null)
-                request.setHeaders(script.getRequestHeaders().toArray(
-                        (new Header[script.getRequestHeaders().size()])));
-            log(request, request.getURI());
-            if (isCanceled())
-                return;
-            ResponseHandler<HttpResponse> responseHandler = new UnravlResponseHandler();
-            HttpResponse response = httpclient
-                    .execute(request, responseHandler);
-            long end = System.currentTimeMillis();
-            logger.info(script.getMethod() + " took " + (end - start)
-                    + "ms, returned HTTP status " + response);
-            setResponseHeaders(response.getAllHeaders());
-            log(response);
-            assertStatus(response);
-        } catch (ClientProtocolException e) {
-            throwException(e);
+    // ApiCall originally invoked the API via Apache HTTP Client
+    // and the members of ApiCall still reflect that.
+    // If invoking with RestTemplate, we must map between the
+    // Apache Headers and Spring headers representations.
+    private void executeAPIWithRestTemplate(RestTemplate restTemplate,
+            final HttpHeaders headers) throws UnRAVLException {
+
+        // We're using the requestcallback here and responseextractor below in
+        // case the request or response is binary.
+        final RequestCallback requestCallback = new RequestCallback() {
+            @Override
+            public void doWithRequest(final ClientHttpRequest request)
+                    throws IOException {
+                request.getHeaders().putAll(headers);
+                if (requestBody != null)
+                    request.getBody().write(requestBody.toByteArray());
+                ;
+            }
+        };
+        ResponseExtractor<InternalResponse> responseExtractor = new ResponseExtractor<InternalResponse>() {
+            @Override
+            public InternalResponse extractData(ClientHttpResponse response)
+                    throws IOException {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Binary.copy(response.getBody(), baos);
+                return new InternalResponse(response.getStatusCode(),
+                        baos.toByteArray(), response.getHeaders());
+            }
+        };
+        try {
+            authenticate();
         } catch (IOException e) {
             throwException(e);
-        } catch (URISyntaxException e) {
+        }
+
+        long start = System.currentTimeMillis();
+        InternalResponse response = restTemplate.execute(getURI(),
+                HttpMethod.valueOf(method.name()), requestCallback,
+                responseExtractor);
+        setResponseHeaders(mapHeaders(response.headers));
+        httpStatus = response.status.value();
+        responseBody = new ByteArrayOutputStream();
+        try {
+            responseBody.write(response.responseBody);
+        } catch (IOException e) {
             throwException(e);
-        } finally {
-            try {
-                httpclient.close();
-            } catch (IOException e) {
-                throwException(e);
+        }
+        long end = System.currentTimeMillis();
+
+        logger.info(script.getMethod() + " took " + (end - start)
+                + "ms, returned HTTP status " + response.status);
+        log("Response body:", responseBody, "Response headers:",
+                response.headers);
+        assertStatus(response.status.value());
+    }
+
+    private class InternalResponse {
+        private HttpStatus status;
+        private byte[] responseBody;
+        private HttpHeaders headers;
+
+        public InternalResponse(HttpStatus status, byte[] responseBody,
+                HttpHeaders headers) {
+            super();
+            this.status = status;
+            this.responseBody = responseBody;
+            this.headers = headers;
+        }
+    }
+
+    // Convert from Apache Headers Spring Headers
+    private HttpHeaders mapHeaders(List<Header> requestHeaders) {
+        HttpHeaders headers = new HttpHeaders();
+        for (Header h : requestHeaders)
+            headers.add(h.getName(), h.getValue());
+        return headers;
+    }
+
+    // Convert from Spring Headers to Apache Headers
+    private Header[] mapHeaders(HttpHeaders responseHeaders) {
+        ArrayList<Header> h = new ArrayList<Header>(responseHeaders.size());
+        for (Entry<String, List<String>> es : responseHeaders.entrySet()) {
+            String name = es.getKey();
+            for (String v : es.getValue()) {
+                Header header = new BasicHeader(name, v);
+                h.add(header);
             }
         }
+        return h.toArray(new Header[h.size()]);
     }
 
     private void setMethod(Method method) {
@@ -545,14 +571,12 @@ public class ApiCall {
     // return getRuntime().getBindings();
     // }
 
-    private void assertStatus(HttpResponse response)
-            throws UnRAVLAssertionException, UnRAVLException {
-
+    private void assertStatus(int httpStatus) throws UnRAVLAssertionException,
+            UnRAVLException {
         StatusAssertion sa = new StatusAssertion();
         sa.setScript(script);
         sa.setScriptlet(STATUS_ASSERTION);
         try {
-            httpStatus = response.getStatusLine().getStatusCode();
             bind("status", new Integer(httpStatus));
             ObjectNode node = statusAssertion();
             if (node != null) {
@@ -599,35 +623,6 @@ public class ApiCall {
 
     private ObjectNode statusAssertion() throws UnRAVLException {
         return statusAssertion(script);
-    }
-
-    private void attachBody(HttpEntityEnclosingRequestBase method) {
-        if (requestBody != null) {
-            HttpEntity entity = new InputStreamEntity(new ByteArrayInputStream(
-                    requestBody.toByteArray()));
-            method.setEntity(entity);
-        }
-    }
-
-    private class UnravlResponseHandler implements
-            ResponseHandler<HttpResponse> {
-
-        @Override
-        public HttpResponse handleResponse(HttpResponse response)
-                throws ClientProtocolException, IOException {
-            if (response.getEntity() == null)
-                return response;
-            InputStream input = response.getEntity().getContent();
-            if (input != null) {
-                responseBody = new ByteArrayOutputStream();
-                Binary.copy(input, responseBody);
-                responseBody.close();
-            } else
-                responseBody = null;
-
-            return response;
-        }
-
     }
 
     private boolean runAssertions(Stage stage) throws UnRAVLException {
@@ -729,26 +724,26 @@ public class ApiCall {
                 + " must be a string, an object, or an array.");
     }
 
-    private void log(HttpRequestBase request, URI uri) {
-        logger.info(script.getMethod() + " " + uri);
-        for (Header h : request.getAllHeaders()) {
-            if (h.getName() == "Authorization") // Don't log easily decoded
-                                                // credentials
-                logger.info(h.getName() + ": ************");
-            else
-                logger.info(h);
+    private void log(String bodyLabel, ByteArrayOutputStream bytes,
+            String headersLabel, HttpHeaders headers) {
+
+        if (headers != null && headers.size() > 0) {
+            logger.info(headersLabel);
+            Header hs[] = mapHeaders(headers);
+            for (Header h : hs) {
+                if (h.getName() == "Authorization") // Don't log easily decoded
+                                                    // credentials
+                    logger.info(h.getName() + ": ************");
+                else
+                    logger.info(h);
+            }
         }
-        log("request body:", requestBody, request.getHeaders("Content-Type"));
-    }
-
-    private void log(HttpResponse response) {
-        for (Header h : response.getAllHeaders())
-            logger.info(h);
-        log("response body:", responseBody, response.getHeaders("Content-Type"));
-    }
-
-    private void log(String label, ByteArrayOutputStream bytes, Header[] headers) {
-        if (script.bodyIsTextual(headers))
+        MediaType contentType = headers.getContentType();
+        if (contentType == null)
+            return;
+        Header ct[] = new Header[] { new BasicHeader("Content-Type",
+                contentType.toString()) };
+        if (script.bodyIsTextual(ct))
             try {
                 if (bytes == null) {
                     if (getMethod() != Method.HEAD)
@@ -756,8 +751,8 @@ public class ApiCall {
                     return;
                 }
                 if (logger.isInfoEnabled()) {
-                    logger.info(label);
-                    if (script.bodyIsJson(headers)) {
+                    logger.info(bodyLabel);
+                    if (script.bodyIsJson(ct)) {
                         try {
                             ObjectMapper mapper = new ObjectMapper();
                             mapper.enable(SerializationFeature.INDENT_OUTPUT);

@@ -9,14 +9,14 @@ description = "Uniform REST API Validation Language"
 
 ext {
     jacksonVersion = "2.5.+"
-	groovyVersion = "2.4.3"
-	springVersion = "4.1.6.RELEASE"
-	httpClientVersion = "4.5"
-	httpCoreVersion = "4.4.1"
-	commonsCodecVersion = "1.10"
-	log4jVersion = "1.2.17"
-	guavaVersion = "18.0"
-	junitVersion = "4.12"
+    groovyVersion = "2.4.3"
+    springVersion = "4.2.2.RELEASE"
+    httpClientVersion = "4.5"
+    httpCoreVersion = "4.4.1"
+    commonsCodecVersion = "1.10"
+    log4jVersion = "1.2.17"
+    guavaVersion = "18.0"
+    junitVersion = "4.12"
     jsonPathVersion = '2.+'
     jsonSchemaValidatorVersion = "2.2.6"
     jsonSchemaCoreVersion = "1.2.5"
@@ -51,6 +51,7 @@ dependencies {
     compile group: 'com.github.fge', name: 'jackson-coreutils', version: jacksonCoreUtilsVersion
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: jsonPathVersion
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: slf4jVersion
+    
     testCompile group: 'com.fasterxml.jackson.module', name: 'jackson-module-jaxb-annotations', version: jacksonVersion
     testCompile group: 'junit', name: 'junit', version: junitVersion
 }

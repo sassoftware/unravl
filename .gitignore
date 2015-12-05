@@ -4,6 +4,7 @@
 /utf-8.json
 /utf-8.txt
 /build
+/bin
 .classpath
 .project
 .gradle
