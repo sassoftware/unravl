@@ -328,11 +328,15 @@ Extract links via link relation names or link matchers.
  { "links" : matchers, "from" : "path", "unwrap" : true }
  { "hrefs" : matchers }
  { "hrefs" : matchers, "from" : "path" }
+ { "hrefs" : matchers, "prefix" : "URL-string" }
 ```
 
 Each *matcher* can be either a string (find the corresponding link with that link relation name),
 an array of strings (bind multiple variables via multiple link relation names),
 or a JSON object with pairs of link relation names/matchers.
+
+The `"links"` forms extract link objects; the `"href"` form extract just
+href URL strings.
 
 Here's an example. GET a resource at URL stored in the var `{location}`, extract the hrefs for the links with the link relations `"rel' : "self"`, `"rel":"update"` and `"rel": "delete"` from that JSON response body's `"links"` array, and assert the location matches the `"href"` values of those three links:
 
@@ -385,8 +389,8 @@ via the Jackson `ObjectNode.textValue()` method:
      "GET" : "{location}",
      "bind" : [
                 { "json" : "resource" },
-                { "links" : [ "self", "update", "delete"], 
-                            "from" : "resource", 
+                { "links" : [ "self", "update", "delete"],
+                            "from" : "resource",
                             "unwrap" : true}
               ],
      "assert" : [ "self.href == location",
@@ -397,6 +401,37 @@ via the Jackson `ObjectNode.textValue()` method:
                   "delete.method == 'DELETE'"
                 ]
 ```
+
+An extra option, `"prefix" : "URL-prefix"` may be used to to
+specify a prefix string to be prepended to the href values. This may be a URL
+such as `"http://www.example.com/myApi"`. The prefix is applied to the href if
+and only if the href value is not a full URL.
+
+If the variable `unravl.href.prefix` is defined, its value will
+be used if no `"prefix"` is defined.
+
+Examples:
+
+```JSON
+ {
+   "GET" : "{site}/apiPath",
+   "bind" : { "href" : "self", "prefix" : "https://www.example.com/myApi"  }
+ }
+
+ { "env" : { "site" : "https://www.example.com/myApi" },
+   "GET" : "{site}/apiPath",
+   "bind" : { "href" : "self", "prefix" : "{site}" }
+ }
+
+ { "env" : { "unravl.href.prefix " : "https://www.example.com/myApi" },
+   "GET" : "{site}/apiPath",
+   "bind" : { "href" : "self" }
+ }
+```
+
+All three of these forms will convert a href from the `"self"`
+link such as `"/myResources/ab54d8bc4f"` to
+`"https://www.example.com/myApi/myResources/ab54d8bc4f"`.
 
 By default,
 "links" extracts links from the current JSON object stored in `responseBody`,
@@ -442,7 +477,7 @@ representation by Mike Kelly which uses a "_links" member:
 
 ```
 
-We will refer to this as the HAL response. Each HAl link contains only the href member.
+We will refer to this as the HAL response. Each HAL link contains only the href member.
 
 The general form of the links (or hrefs) extractor is
 
