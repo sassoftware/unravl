@@ -9,7 +9,10 @@ import com.sas.unravl.UnRAVL;
 import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
 import com.sas.unravl.util.Json;
+import com.sas.unravl.util.VariableResolver;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -155,7 +158,42 @@ import org.apache.log4j.Logger;
  * <p>
  * If "from" is present, its value should be the name of an UnRAVL variable that
  * contains the links collection. By default, this is the JSON response object.
- *
+ * <p>
+ * An extra option, <code>"prefix" : "<em>prefix</em>"</code> may be used to to
+ * specify a prefix string to be prepended to the href values. This may be a URL
+ * such as "http://www.example.com/myApi". The prefix is applied to the href if
+ * and only if the href value is not a full URL.
+ * </p>
+ * <p>
+ * If the variable </code>unravl.href.prefix </code>is defined, its value will
+ * be used if no "prefix" is defined
+ * </p>
+ * <p>
+ * Examples:
+ * </p>
+ * 
+ * <pre>
+ *  { 
+ *    "GET" : "{site}/apiPath", 
+ *    "bind" : { "href" : "self", "prefix" : "https://www.example.com/myApi"  }
+ *  }
+ *  
+ *  { "env" : { "site" : "https://www.example.com/myApi" },
+ *    "GET" : "{site}/apiPath", 
+ *    "bind" : { "href" : "self", "prefix" : "{site}" }
+ *  }
+ *  
+ *  { "env" : { "unravl.href.prefix " : "https://www.example.com/myApi" },
+ *    "GET" : "{site}/apiPath", 
+ *    "bind" : { "href" : "self" }
+ *  }
+ * </pre>
+ * 
+ * <p>
+ * All three of these forms will convert a href from the <code>"self"</code>
+ * link such as <code>"/myResources/ab54d8bc4f"</code> to
+ * <code>"https://www.example.com/myApi/myResources/ab54d8bc4f"</code>.
+ * 
  * <h2>Example: Extracting multiple links</h2>
  *
  * <p>
@@ -267,6 +305,8 @@ import org.apache.log4j.Logger;
 @UnRAVLExtractorPlugin({ "link", "links", "href", "hrefs" })
 public class LinksExtractor extends BaseUnRAVLExtractor {
 
+    private static final String PREFIX_KEY = "prefix";
+    private static final String UNRAVL_HREF_PREFIX = "unravl.href.prefix";
     private static final String REL_KEY = "rel";
     private static final String COLLECTION_KEY = "collection";
     private static final String HREF_KEY = "href";
@@ -331,10 +371,50 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
             Object value = link;
             if (href) {
                 value = link.get(HREF_KEY).textValue();
+                value = applyPrefix(root, (String) value);
             } else if (unwrap)
                 value = Json.unwrap(link);
             logger.info(String.format("Bound link name %s to %s", name, value));
             call.getScript().bind(name, value);
+        }
+    }
+
+    private String applyPrefix(ObjectNode root, String value)
+            throws UnRAVLException {
+        if (isUrl(value))
+            return value;
+        JsonNode prefixSpec = root.get(PREFIX_KEY);
+        String prefix = null;
+        if (prefixSpec == null) {
+            Object implicitPrefix = getScript().binding(UNRAVL_HREF_PREFIX);
+            if (implicitPrefix == null) {
+                return value;
+            } else if (implicitPrefix instanceof String)
+                prefix = (String) implicitPrefix;
+            else {
+                throw new UnRAVLException(
+                        "href prefix value must be a string, found "
+                                + implicitPrefix.getClass().getName()
+                                + ", value = " + prefixSpec);
+            }
+        } else {
+            if (!prefixSpec.isTextual()) {
+                throw new UnRAVLException(
+                        "href prefix value must be a string, found "
+                                + prefixSpec.getClass().getName()
+                                + ", value = " + prefixSpec);
+            } else
+                prefix = getScript().expand(prefixSpec.textValue());
+        }
+        return prefix + value;
+    }
+
+    private boolean isUrl(String value) {
+        try {
+            new URL(value);
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
         }
     }
 
