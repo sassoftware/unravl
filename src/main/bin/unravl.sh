@@ -13,7 +13,7 @@ then # This works for a distribution, where UNRAVL is deployed in $UNRAVL_DIR,
      # the script is in $UNRAVL_DIR/bin,
      # and all the dependent jars are in  $UNRAVL_DIR/lib
      UNRAVL_CLASSPATH="$UNRAVL_DIR/lib/*:"
-elif [ -d $UNRAVL_DEV_DIR/build/lib -a -d $UNRAVL_DEV_DIR/../../build/output/lib ]
+elif [ -d $UNRAVL_DEV_DIR/build/libs -a -d $UNRAVL_DEV_DIR/../../build/output/lib ]
 then # This is for use in the build environment where the script
      # is in src/main/bin
      # Build with:
