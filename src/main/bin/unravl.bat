@@ -33,7 +33,7 @@ if exist !UNRAVL_DIR!\lib (
     echo !UNRAVL_DIR! does not contain libraries !UNRAVL_DIR! build\libs
     echo !UNRAVL_DEV_DIR! does not contain libraries in !UNRAVL_DEV_DIR!\build\libs
     echo If in development, run:
-    echo   .\gradlew clean build copyDeps
+    echo   .\gradlew clean build
     exit /B 1
   )
 )
