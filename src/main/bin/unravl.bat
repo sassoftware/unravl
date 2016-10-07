@@ -22,7 +22,7 @@ if exist !UNRAVL_DIR!\lib (
     Rem This is for use in the build environment where the script
     Rem is in src/main/bin
     Rem Build with:
-    Rem    .\gradlew clean build copyDeps
+    Rem    .\gradlew clean build
     Rem Gradle will put the UnRAVL jar in build/libs
     Rem and dependent jars in build/output/lib
     set UNRAVL_JAR_DIR=!UNRAVL_DEV_DIR!\build\libs
