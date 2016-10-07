@@ -23,9 +23,9 @@ then # This is for use in the build environment where the script
      UNRAVL_JAR_DIR="$UNRAVL_DEV_DIR/build/libs"
      UNRAVL_LIB_DIR="$UNRAVL_DEV_DIR/build/output/lib"
      UNRAVL_CLASSPATH="$UNRAVL_LIB_DIR/*:$UNRAVL_JAR_DIR/*"
-else echo $UNRAVL_DIR or $UNRAVL_DEV_DIR do not contain libraries
+else echo No libraries found in lib or build/libs:build/output/lib
      echo If in development, run:
-     echo   ./gradlew clean build copyDeps
+     echo   ./gradlew clean build
      exit 1
 fi
 
