@@ -23,15 +23,14 @@ if exist !UNRAVL_DIR!\lib (
     Rem is in src/main/bin
     Rem Build with:
     Rem    .\gradlew clean build
-    Rem Gradle will put the UnRAVL jar in build/libs
-    Rem and dependent jars in build/output/lib
+    Rem Gradle will put the UnRAVL jar in build\libs
+    Rem and dependent jars in build\output\lib
     set UNRAVL_JAR_DIR=!UNRAVL_DEV_DIR!\build\libs
     set UNRAVL_LIB_DIR=!UNRAVL_DEV_DIR!\build\output\lib
     set UNRAVL_CLASSPATH=!UNRAVL_LIB_DIR!/*;!UNRAVL_JAR_DIR!/*;
     Rem echo UNRAVL_CLASSPATH is !UNRAVL_CLASSPATH!
   ) else (
-    echo !UNRAVL_DIR! does not contain libraries !UNRAVL_DIR! build\libs
-    echo !UNRAVL_DEV_DIR! does not contain libraries in !UNRAVL_DEV_DIR!\build\libs
+    echo No libraries found in lib or build\libs;build\output\lib
     echo If in development, run:
     echo   .\gradlew clean build
     exit /B 1
