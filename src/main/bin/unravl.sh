@@ -13,19 +13,19 @@ then # This works for a distribution, where UNRAVL is deployed in $UNRAVL_DIR,
      # the script is in $UNRAVL_DIR/bin,
      # and all the dependent jars are in  $UNRAVL_DIR/lib
      UNRAVL_CLASSPATH="$UNRAVL_DIR/lib/*:"
-elif [ -d $UNRAVL_DIR/../../build/libs -a -d $UNRAVL_DIR/../../build/output/lib ]
+elif [ -d $UNRAVL_DEV_DIR/build/libs -a -d $UNRAVL_DEV_DIR/build/output/lib ]
 then # This is for use in the build environment where the script
      # is in src/main/bin
      # Build with:
-     #    ./gradlew clean build copyDeps
+     #    ./gradlew clean build
      # Gradle will put the UnRAVL jar in build/libs
      # and dependent jars in build/output/lib
      UNRAVL_JAR_DIR="$UNRAVL_DEV_DIR/build/libs"
      UNRAVL_LIB_DIR="$UNRAVL_DEV_DIR/build/output/lib"
      UNRAVL_CLASSPATH="$UNRAVL_LIB_DIR/*:$UNRAVL_JAR_DIR/*"
-else echo $DOADIE_DIR does not contain libraries.
+else echo No libraries found in lib or build/libs:build/output/lib
      echo If in development, run:
-     echo   ./gradlew clean build copyDeps
+     echo   ./gradlew clean build
      exit 1
 fi
 

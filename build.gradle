@@ -61,6 +61,7 @@ task copyDeps(type: Copy) {
     from configurations.runtime
 }
 
+build.dependsOn copyDeps
 
 javadoc {
      source = sourceSets.main.allJava
