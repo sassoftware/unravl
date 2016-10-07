@@ -75,7 +75,7 @@ UnRAVL will pass the user ID and user password from
 the credentials provider (such as from the line in the `.netrc` file
 that matches the *`oauth-server-URL`* host/machine).
 
-The `POST` call will also use [Basic authentication]](#basic) based on
+The `POST` call will also use [Basic authentication](#basic) based on
 the client ID and client secret.
 
 When using `.netrc` credential provider, the `.netrc` file
@@ -90,7 +90,7 @@ may replace an existing binding for that variable.)
 
 Next, the OAuth2 object will add a
 ```
-Authentication: Basic {access_token}
+Authentication: Bearer {access_token}
 ```
 header to the current REST API call.
 
