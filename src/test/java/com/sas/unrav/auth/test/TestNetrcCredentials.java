@@ -2,6 +2,7 @@
 package com.sas.unrav.auth.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -99,7 +100,45 @@ public class TestNetrcCredentials {
             assertEquals(expectedClientId, oauth2.getClientId());
             assertEquals(expectedClientSecret, oauth2.getClientSecret());
         }
+        
+        if (expectedClientId != null) {
+        node = (ObjectNode) Json.parse(String.format("{ \"oauth2\" : \"\", \"login\": \"%s\", \"password\" : \"%s\" }", expectedUserName, expectedPassword));
+        cred = nc.getHostCredentials(hostName, node, false);
+        assertEquals(expectedUserName, cred.getUserName());
+        assertEquals(expectedPassword, cred.getPassword());
+        assertTrue(cred instanceof OAuth2Credentials); 
+        {
+            OAuth2Credentials oauth2 = (OAuth2Credentials) cred;
+            assertEquals(expectedClientId, oauth2.getClientId());
+            assertEquals(expectedClientSecret, oauth2.getClientSecret());
+        }
 
+
+        // verify that we use the password in the auth object, not in .netrc
+        node = (ObjectNode) Json.parse(String.format("{ \"oauth2\" : \"\", \"login\": \"%s\", \"password\" : \"override\" }", expectedUserName));
+        cred = nc.getHostCredentials(hostName, node, false);
+        assertEquals(expectedUserName, cred.getUserName());
+        assertEquals("override", cred.getPassword());
+        assertTrue(cred instanceof OAuth2Credentials); 
+        {
+            OAuth2Credentials oauth2 = (OAuth2Credentials) cred;
+            assertEquals(expectedClientId, oauth2.getClientId());
+            assertEquals(expectedClientSecret, oauth2.getClientSecret());
+        }
+        
+        // verify that we use the password , clientId, and secret in the auth object, not in .netrc
+        node = (ObjectNode) Json.parse(String.format("{ \"oauth2\" : \"\", \"login\": \"%s\", \"password\" : \"override\", \"clientId\": \"lClientId\", \"clientSecret\": \"lClientSecret\" }", expectedUserName ));
+        cred = nc.getHostCredentials(hostName, node, false);
+        assertEquals(expectedUserName, cred.getUserName());
+        assertEquals("override", cred.getPassword());
+        assertTrue(cred instanceof OAuth2Credentials); 
+        {
+            OAuth2Credentials oauth2 = (OAuth2Credentials) cred;
+            assertEquals("lClientId", oauth2.getClientId());
+            assertEquals("lClientSecret", oauth2.getClientSecret());
+        }
+
+        }
     }
 
     @AfterClass

@@ -25,7 +25,8 @@ abstract public class AbstractCredentialsProvider implements
         CredentialsProvider {
 
     protected UnRAVLRuntime runtime;
-
+    protected ObjectNode auth;
+    
     public AbstractCredentialsProvider() {
         super();
     }
@@ -56,6 +57,7 @@ abstract public class AbstractCredentialsProvider implements
             boolean mock) throws IOException {
         if (mock)
             return mockCredentials();
+        this.auth = auth;
         String userName = credentialValue(auth, "login");
         if (userName == null)
             userName = credentialValue(auth, "user");
@@ -63,7 +65,7 @@ abstract public class AbstractCredentialsProvider implements
         return getHostCredentials(host, userName, password, mock);
     }
 
-    private String credentialValue(ObjectNode auth, String key) {
+    protected String credentialValue(ObjectNode auth, String key) {
         String val = Json.stringFieldOr(auth, key, null);
         return val == null ? null : runtime.expand(val);
     }
@@ -102,15 +104,14 @@ abstract public class AbstractCredentialsProvider implements
     }
 
     protected HostCredentials credentials(String login, String password) {
-        return new HostCredentials(runtime.expand(login),
-                runtime.expand(password));
+        return new HostCredentials(login, password);
     }
 
     protected HostCredentials credentials(String login, String password,
             String clientId, String clientSecret, String accessToken) {
-        return new OAuth2Credentials(runtime.expand(login),
-                runtime.expand(password), runtime.expand(clientId),
-                runtime.expand(clientSecret), runtime.expand(accessToken));
+        return new OAuth2Credentials(login,
+                password, clientId,
+                clientSecret, accessToken);
     }
 
 }

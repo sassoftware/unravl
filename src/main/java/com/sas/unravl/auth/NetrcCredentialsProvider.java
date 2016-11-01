@@ -77,11 +77,9 @@ public class NetrcCredentialsProvider extends AbstractCredentialsProvider {
 
         if (mock)
             return mockCredentials();
-        if (login != null) {
-            login = runtime.expand(login);
-            if (password != null)
-                return credentials(login, password);
-        }
+        String clientId = credentialValue(auth, "clientId");
+        String clientSecret = credentialValue(auth, "clientSecret");
+        String accessToken = credentialValue(auth, "accessToken");
 
         // Locate the netrc config file that contains credentials for hosts
         File netrc = new File(".netrc"); // look in current dir first
@@ -149,21 +147,35 @@ public class NetrcCredentialsProvider extends AbstractCredentialsProvider {
                                 + " in netrc file");
                     }
                 }
-                if (host.equalsIgnoreCase(lHost) && Objects.equals(port, lPort)) {
+                if (host.equalsIgnoreCase(lHost)
+                        && Objects.equals(port, lPort)
+                        && (clientId == null || (Objects.equals(clientId,
+                                lClientId)))) {
                     if (login == null || lLogin.equals(login)) {
-                        login = lLogin;
-                        password = lPassword;
-                        if (lClientId != null || lClientSecret != null
-                                || lAccessToken != null)
-                            return credentials(login, password, lClientId,
-                                    lClientSecret, lAccessToken);
-                        else
-                            return credentials(login, password);
+                        if ((or(clientId, lClientId) != null && or(clientSecret, lClientSecret) != null)
+                                || or(accessToken, lAccessToken) != null)
+                            return credentials(or(login, lLogin), or(password, lPassword),
+                                    or(clientId, lClientId),
+                                    or(clientSecret, lClientSecret),
+                                    or(accessToken, lAccessToken));
+                        else if (or(password, lPassword) != null)
+                            return credentials(or(login, lLogin), or(password, lPassword));
                     }
                 }
             }
         }
+
+        if ((clientId != null && clientSecret != null) || accessToken != null)
+            return credentials(login, password, clientId, clientSecret,
+                    accessToken);
+        else if (login != null && password != null)
+            return credentials(login, password);
+
         return null;
+    }
+
+    private String or(String s1, String s2) {
+        return s1 == null ? s2 : s1;
     }
 
 }
