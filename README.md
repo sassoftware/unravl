@@ -255,7 +255,6 @@ and organize imports in com, java, javax, org order (alphabetical, with grouping
 
 Contributors are listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 
-```
 ## License
 
 UnRAVL is released under the [Apache 2.0 License](LICENSE).
