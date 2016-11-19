@@ -1,5 +1,9 @@
 ## UnRAVL releases
 
+* [Release v1.3.1](https://github.com/sassoftware/unravl/releases/tag/v1.3.1)
+  * Add a prefix option to the href links extractor to resolve relative links
+  * Make Unix and Windows unravl CLI scripts more robust (running from a dev)
+  * Minor doc cleanup
 * [Release v1.2.1](https://github.com/sassoftware/unravl/releases/tag/v1.2.1)
   * Improved Cut/Copy/Paste, layout, threading, and other
     interactive mode improvements
