@@ -10,7 +10,7 @@ loading templates based on a variable binding.
 The "`.template`" suffix is assumed if omitted if omitted from *`template-name`*.
 
 All the environment settings, if conditions, request body and headers, API calls, bindings, and assertions
-of the template are added to a test.  A test or template will evaluated these template
+of the template are added to a test.  A test or template will evaluate these template
 elements before its own. Note that "env" elements in templates may
 overwrite variable bindings.
 
