@@ -33,7 +33,7 @@ to assert the same response each time:
 
   {
     "name" : "Google Everest Elevation setup",
-    "env" : { "url" : "http://maps.googleapis.com/maps/api/elevation/json?locations=27.988056,86.925278&sensor=false" }
+    "env" : { "url" : "http://maps.googleapis.com/maps/api/elevation/json?locations=27.988056,86.925278&sensor=false" },
     "doc" : "Save the response to GoogleEverestElevation.json",
     "GET" : "{url}",
     "bind" : { "json" : "@GoogleEverestElevation.json" }
