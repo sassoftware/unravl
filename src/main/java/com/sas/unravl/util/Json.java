@@ -1,6 +1,21 @@
 // Copyright (c) 2014, SAS Institute Inc., Cary, NC, USA, All Rights Reserved
 package com.sas.unravl.util;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,19 +39,6 @@ import com.sas.unravl.UnRAVL;
 import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.generators.Text;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
 /**
  * JSON utility methods.
  *
@@ -45,6 +47,11 @@ import org.apache.log4j.Logger;
 public class Json {
     private static ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = Logger.getLogger(Json.class);
+
+    /** defines a pattern for variable substitution {@varName@} **/
+    public static final String VAR_VALUE_PATTERN = "\\{@[-\\w.\\$]+@\\}";
+    /** delimiter for variable substitution **/
+    public static final String VAR_VALUE_DELIMITER = "@";
 
     /**
      * Convenience method for parsing a string as JSON.
@@ -85,6 +92,14 @@ public class Json {
          * each string with its environment expansion, That is, replace
          * {varName} with the current binding for "varName" in the script's
          * environment.
+         * 
+         * Each string of a pattern {@varName@} will be replaced with
+         * the actual value of that environment variable if it can be resolved.
+         * For example, "env" : { "index": 1, ...} "body" : {"index": "{@index@}
+         * ", ... }
+         * 
+         * This will return JSON with the actual value of a var " {"index": 1,
+         * ...}
          *
          * @param node
          *            the input JSON
@@ -94,7 +109,41 @@ public class Json {
             @Override
             public JsonNode apply(JsonNode node) {
                 if (node.isTextual()) {
-                    return new TextNode(script.expand(node.textValue()));
+                    if (isValueNode(node.textValue())) {
+                        Object nodeValue = script
+                                .obtainVariableValue(getVariableName(node
+                                        .textValue()));
+                        if (nodeValue instanceof Boolean) {
+                            boolean boolValue = (Boolean) nodeValue;
+                            if (boolValue) {
+                                return BooleanNode.getTrue();
+                            } else {
+                                return BooleanNode.getFalse();
+                            }
+                        } else if (nodeValue instanceof Integer) {
+                            return new IntNode((Integer) nodeValue);
+                        } else if (nodeValue instanceof Double) {
+                            return new DoubleNode((Double) nodeValue);
+                        } else if (nodeValue instanceof BigInteger) {
+                            return new BigIntegerNode((BigInteger) nodeValue);
+                        } else if (nodeValue instanceof BigDecimal) {
+                            return new DecimalNode((BigDecimal) nodeValue);
+                        } else if (nodeValue instanceof Long) {
+                            return new LongNode((Long) nodeValue);
+                        } else if (nodeValue instanceof String) {
+                            return new TextNode(nodeValue.toString());
+                        } else if (nodeValue instanceof ArrayNode) {
+                            return (ArrayNode) nodeValue;
+                        } else if (nodeValue instanceof ObjectNode) {
+                            return (ObjectNode) nodeValue;
+                        } else if (nodeValue == null) {
+                            return NullNode.getInstance();
+                        } else {
+                            return new TextNode(nodeValue.toString());
+                        }
+                    } else {
+                        return new TextNode(script.expand(node.textValue()));
+                    }
                 } else if (node.isArray()) {
                     ArrayNode from = (ArrayNode) node;
                     ArrayNode to = new ArrayNode(jnf);
@@ -431,4 +480,37 @@ public class Json {
         }
     }
 
+    /**
+     * Gets the variable name embedded in braces of form {varName}. Gets rids of
+     * delimiters "@" which identify if the actual value should be returned for
+     * the variable.
+     *
+     * @param node
+     *            a textual node
+     * @return variable name in braces
+     */
+    private static String getVariableName(String node) {
+        String varName = "";
+        if ((node != null) && (!node.isEmpty())) {
+            varName = node.replace(VAR_VALUE_DELIMITER, "");
+        }
+        return varName;
+    }
+
+    /**
+     * Checks if a node is a value node. If a node is of pattern {@varName@
+     * } it is a value node; that is return the actual value for that
+     * node instead of embedding it to a string.
+     *
+     * @param node
+     *            a textual node
+     * @return if the node is a value node
+     */
+    private static boolean isValueNode(String node) {
+        if ((node == null) || (node.isEmpty())) {
+            return false;
+        } else {
+            return node.matches(VAR_VALUE_PATTERN);
+        }
+    }
 }

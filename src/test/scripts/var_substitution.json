@@ -1,0 +1,38 @@
+{ "name" : "Test variable substitution",
+  "env" : { "API_ROOT": "http://www.httpbin.org",
+            "intValue": 1,
+            "stringValue": "string",
+            "arrayValue": ["a", "b", "c", "d"],
+        "boolValue": true,
+            "doubleValue": 2.9,
+        "nullValue": null,
+            "objValue": {"id": 1, "name": "test1"},
+            "arrObjectValues": [{"name" : "AGE"}, {"name": "ADDRESS"}]
+   },
+  "POST" : "{API_ROOT}/post",
+  "headers" : { "Content-Type" : "text/plain",
+                "Accept" : "text/plain",
+                "Agent" : "UnRAVL"
+              },
+  "body" : {"int": "{@intValue@}",
+            "string": "{@stringValue@}",
+            "array": "{@arrayValue@}",
+        "boolean": "{@boolValue@}",
+            "double": "{@doubleValue@}",
+            "null": "{@nullValue@}",
+            "object": "{@objValue@}",
+        "arrayOfObjects": "{@arrObjectValues@}"
+   },
+  "bind" : [ { "json" : "@-" },
+             { "groovy" : {
+                 "actual" : "responseBody.json",
+                 "sentHeaders" : "responseBody.headers"
+                 }
+               }
+             ],
+  "assert" : [
+      "sentHeaders['Accept'].textValue() == 'text/plain'",
+      "sentHeaders['Content-Type'].textValue() == 'text/plain'",
+      "sentHeaders['Agent'].textValue() == 'UnRAVL'"
+      ]
+}

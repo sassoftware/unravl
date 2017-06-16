@@ -2,14 +2,14 @@ package com.sas.unravl.test;
 
 import static org.junit.Assert.assertEquals;
 
-import com.sas.unravl.util.VariableResolver;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.sas.unravl.util.VariableResolver;
 
 public class TestVariableResolver {
 
@@ -23,6 +23,8 @@ public class TestVariableResolver {
         environmentMap.put("var_2", "val2");
         environmentMap.put("var.2", "val3");
         environmentMap.put("$var4", "val4");
+        environmentMap.put("var5", 5);
+        environmentMap.put("var6", true);
         environmentMap = Collections.unmodifiableMap(environmentMap);
         reusableResolver = new VariableResolver(environmentMap);
     }
@@ -34,6 +36,14 @@ public class TestVariableResolver {
         actual = newInstance.expand(input);
         assertEquals(expected, actual);
 
+    }
+
+    private void assertResolveVarValue(Object expected, String input) {
+        Object actual = reusableResolver.resolveVarValue(input);
+        assertEquals(expected, actual);
+        VariableResolver newInstance = new VariableResolver(environmentMap);
+        actual = newInstance.resolveVarValue(input);
+        assertEquals(expected, actual);
     }
 
     private void assertNoResolve(String input) {
@@ -158,6 +168,22 @@ public class TestVariableResolver {
     public void test23() {
         assertResolve("{var1|value1 val2 {var3|value3",
                 "{var1|value1 {var_2|value2} {var3|value3");
+    }
+
+    @Test
+    public void test24() {
+        assertResolve("{var1|value1 val2 {var3|value3",
+                "{var1|value1 {var_2|value2} {var3|value3");
+    }
+
+    @Test
+    public void test25() {
+        assertResolveVarValue(5, "{var5}");
+    }
+
+    @Test
+    public void test26() {
+        assertResolveVarValue(true, "{var6}");
     }
 
 }

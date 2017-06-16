@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * {U+002D} will be replaced with the right curly (close) brace, '}', and
  * {U+03C0} will be replaced with the Unicode GREEK SMALL LETTER PI &#x3c0;
  * </ol>
- * 
+ *
  * @author David.Biesack@sas.com
  */
 public class VariableResolver {
@@ -39,7 +39,7 @@ public class VariableResolver {
     /**
      * Construct a reusable resolver that uses an environment. After creating,
      * call {@link #expand(String)}.
-     * 
+     *
      * @param environment
      *            Non-null mapping of variable names to values
      */
@@ -50,7 +50,7 @@ public class VariableResolver {
     /**
      * Expand variable references {varname} or {undefinedVarName|alt value} in
      * the input string source
-     * 
+     *
      * @param input
      *            the input source string
      * @return the result of expanding variables in the input
@@ -62,7 +62,7 @@ public class VariableResolver {
 
     /**
      * Expand variable references in the input
-     * 
+     *
      * @return the expanded input string
      */
     private synchronized String expand() {
@@ -212,7 +212,7 @@ public class VariableResolver {
     /**
      * Test if a string is a Unicode code point that matches the pattern
      * "U+hhhh".
-     * 
+     *
      * @param string
      *            the input string
      * @return True if string matches "U+hhhh" where hhhh is four hex digits.
@@ -229,4 +229,28 @@ public class VariableResolver {
         return (char) codePoint;
     }
 
+    /**
+     * This method resolves the variable value given the variable name. This
+     * will return the value of the variable as an object from the Environment
+     * key-values map. The var name is of form {varName} and is a substring of
+     * the var value notation "{@varName@}". If the varName is
+     * invalid or cannot be found in the list of vars the var value won't be
+     * resolved. This method does not resolve and append the var value into a
+     * string.
+     *
+     * @param varName
+     *            the name of a variable
+     * @return the variable value
+     */
+    public Object resolveVarValue(String varName) {
+        String candidateVarName = varName.substring(
+                varName.indexOf(OPENING_BRACE) + 1,
+                varName.indexOf(CLOSING_BRACE));
+        if (isValidVarName(candidateVarName)
+                && env.containsKey(candidateVarName)) {
+            return env.get(candidateVarName);
+        } else {
+            return varName.toString();
+        }
+    }
 }
