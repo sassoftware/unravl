@@ -30,8 +30,9 @@ files with the UnRAVL jar file via the batch scripts in the
 [`src/main/bin`](https://github.com/sassoftware/unravl/tree/master/src/main/bin) directory
 so you can run scripts from your file explorer.
 
-UnRAVL was designed and initially implemented and is patent pending by David Biesack [@DavidBiesack](https://github.com/DavidBiesack) (GitHub)
+UnRAVL was designed and initially implemented by David Biesack [@DavidBiesack](https://github.com/DavidBiesack) (GitHub)
 [@DavidBiesack](https://twitter.com/DavidBiesack) (Twitter).
+unRAVL is an implementation of [*API validation system*, U.S. Patent No. 9,552,237](http://patft.uspto.gov/netacgi/nph-Parser?Sect1=PTO1&Sect2=HITOFF&d=PALL&p=1&u=%2Fnetahtml%2FPTO%2Fsrchnum.htm&r=1&f=G&l=50&s1=9552237.PN.&OS=PN/9552237&RS=PN/9552237).
 
 ## A basic REST validation
 
