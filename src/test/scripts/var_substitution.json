@@ -3,9 +3,9 @@
             "intValue": 1,
             "stringValue": "string",
             "arrayValue": ["a", "b", "c", "d"],
-        "boolValue": true,
+            "boolValue": true,
             "doubleValue": 2.9,
-        "nullValue": null,
+            "nullValue": null,
             "objValue": {"id": 1, "name": "test1"},
             "arrObjectValues": [{"name" : "AGE"}, {"name": "ADDRESS"}]
    },
@@ -17,18 +17,18 @@
   "body" : {"int": "{@intValue@}",
             "string": "{@stringValue@}",
             "array": "{@arrayValue@}",
-        "boolean": "{@boolValue@}",
+            "boolean": "{@boolValue@}",
             "double": "{@doubleValue@}",
             "null": "{@nullValue@}",
             "object": "{@objValue@}",
-        "arrayOfObjects": "{@arrObjectValues@}"
+            "arrayOfObjects": "{@arrObjectValues@}"
    },
   "bind" : [ { "json" : "@-" },
              { "groovy" : {
                  "actual" : "responseBody.json",
                  "sentHeaders" : "responseBody.headers"
                  }
-               }
+             }
              ],
   "assert" : [
       "sentHeaders['Accept'].textValue() == 'text/plain'",

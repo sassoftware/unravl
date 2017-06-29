@@ -178,12 +178,12 @@ public class TestVariableResolver {
 
     @Test
     public void test25() {
-        assertResolveVarValue(5, "{var5}");
+        assertResolveVarValue(5, "{@var5@}");
     }
 
     @Test
     public void test26() {
-        assertResolveVarValue(true, "{var6}");
+        assertResolveVarValue(true, "{@var6@}");
     }
 
 }

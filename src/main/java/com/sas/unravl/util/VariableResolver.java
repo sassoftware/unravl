@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 public class VariableResolver {
 
     private static final char OPENING_BRACE = '{';
+    /** delimiter for variable substitution **/
+    public static final char VAR_VALUE_DELIMITER = '@';
     private static final char DELIMITER = '|';
     private static final char CLOSING_BRACE = '}';
 
@@ -232,25 +234,23 @@ public class VariableResolver {
     /**
      * This method resolves the variable value given the variable name. This
      * will return the value of the variable as an object from the Environment
-     * key-values map. The var name is of form {varName} and is a substring of
-     * the var value notation "{@varName@}". If the varName is
+     * key-values map. The var name is of form {@varName@}. If the varName is
      * invalid or cannot be found in the list of vars the var value won't be
      * resolved. This method does not resolve and append the var value into a
      * string.
      *
      * @param varName
-     *            the name of a variable
+     *            the encoded name of a variable
      * @return the variable value
      */
     public Object resolveVarValue(String varName) {
-        String candidateVarName = varName.substring(
-                varName.indexOf(OPENING_BRACE) + 1,
-                varName.indexOf(CLOSING_BRACE));
+        int startIndex = varName.indexOf(VAR_VALUE_DELIMITER) + 1;
+        String candidateVarName = varName.substring(startIndex,
+                varName.indexOf(VAR_VALUE_DELIMITER, startIndex));
         if (isValidVarName(candidateVarName)
                 && env.containsKey(candidateVarName)) {
             return env.get(candidateVarName);
-        } else {
-            return varName.toString();
         }
+        return varName;
     }
 }

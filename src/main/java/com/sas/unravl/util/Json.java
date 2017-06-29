@@ -50,8 +50,6 @@ public class Json {
 
     /** defines a pattern for variable substitution {@varName@} **/
     public static final String VAR_VALUE_PATTERN = "\\{@[-\\w.\\$]+@\\}";
-    /** delimiter for variable substitution **/
-    public static final String VAR_VALUE_DELIMITER = "@";
 
     /**
      * Convenience method for parsing a string as JSON.
@@ -92,12 +90,12 @@ public class Json {
          * each string with its environment expansion, That is, replace
          * {varName} with the current binding for "varName" in the script's
          * environment.
-         * 
+         *
          * Each string of a pattern {@varName@} will be replaced with
          * the actual value of that environment variable if it can be resolved.
          * For example, "env" : { "index": 1, ...} "body" : {"index": "{@index@}
          * ", ... }
-         * 
+         *
          * This will return JSON with the actual value of a var " {"index": 1,
          * ...}
          *
@@ -111,8 +109,7 @@ public class Json {
                 if (node.isTextual()) {
                     if (isValueNode(node.textValue())) {
                         Object nodeValue = script
-                                .obtainVariableValue(getVariableName(node
-                                        .textValue()));
+                                .obtainVariableValue(node.textValue());
                         if (nodeValue instanceof Boolean) {
                             boolean boolValue = (Boolean) nodeValue;
                             if (boolValue) {
@@ -481,26 +478,9 @@ public class Json {
     }
 
     /**
-     * Gets the variable name embedded in braces of form {varName}. Gets rids of
-     * delimiters "@" which identify if the actual value should be returned for
-     * the variable.
-     *
-     * @param node
-     *            a textual node
-     * @return variable name in braces
-     */
-    private static String getVariableName(String node) {
-        String varName = "";
-        if ((node != null) && (!node.isEmpty())) {
-            varName = node.replace(VAR_VALUE_DELIMITER, "");
-        }
-        return varName;
-    }
-
-    /**
      * Checks if a node is a value node. If a node is of pattern {@varName@
      * } it is a value node; that is return the actual value for that
-     * node instead of embedding it to a string.
+     * node instead of embedding the value to a string.
      *
      * @param node
      *            a textual node
