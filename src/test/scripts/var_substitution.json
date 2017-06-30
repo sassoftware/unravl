@@ -1,27 +1,26 @@
 { "name" : "Test variable substitution",
   "env" : { "API_ROOT": "http://www.httpbin.org",
-            "intValue": 1,
-            "stringValue": "string",
-            "arrayValue": ["a", "b", "c", "d"],
-            "boolValue": true,
-            "doubleValue": 2.9,
-            "nullValue": null,
-            "objValue": {"id": 1, "name": "test1"},
-            "arrObjectValues": [{"name" : "AGE"}, {"name": "ADDRESS"}]
+            "ucode": "U495",
+            "maxScore": 1000.5,
+            "minScore": 10,
+            "address": {"streetName" : "Mango Circle Dr.", "unitNumber": 451, "city": "Live Oak", "state": "FL", "country": "USA", "zip": 32064},
+            "phone": "3866549000",
+            "email": "stranger@somemail.com",
+            "gameOver": true,
+            "scores": [10, 99, 100.5, 900, 1000.5]         
    },
   "POST" : "{API_ROOT}/post",
   "headers" : { "Content-Type" : "text/plain",
                 "Accept" : "text/plain",
                 "Agent" : "UnRAVL"
               },
-  "body" : {"int": "{@intValue@}",
-            "string": "{@stringValue@}",
-            "array": "{@arrayValue@}",
-            "boolean": "{@boolValue@}",
-            "double": "{@doubleValue@}",
-            "null": "{@nullValue@}",
-            "object": "{@objValue@}",
-            "arrayOfObjects": "{@arrObjectValues@}"
+  "body" : {"id": "{ucode}0008",
+            "name": "Bob",
+            "score": "{@maxScore@}",
+            "homeAddress": "{@address@}",
+            "contact": "{address} {phone} {email}",
+            "isFinished": "{@gameOver@}",
+            "gameScores": "{@scores@}"
    },
   "bind" : [ { "json" : "@-" },
              { "groovy" : {
@@ -33,6 +32,14 @@
   "assert" : [
       "sentHeaders['Accept'].textValue() == 'text/plain'",
       "sentHeaders['Content-Type'].textValue() == 'text/plain'",
-      "sentHeaders['Agent'].textValue() == 'UnRAVL'"
-      ]
+      "sentHeaders['Agent'].textValue() == 'UnRAVL'",
+      { "groovy" : [ "actual.id.isTextual()", 
+                     "actual.score.isDouble()",  
+                     "actual.isFinished.isBoolean()", 
+                     "actual.homeAddress.isObject()", 
+                     "actual.contact.isTextual()", 
+                     "actual.gameScores.isArray()"
+                   ]
+      }
+   ]
 }

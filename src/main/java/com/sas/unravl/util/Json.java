@@ -49,7 +49,7 @@ public class Json {
     private static final Logger logger = Logger.getLogger(Json.class);
 
     /** defines a pattern for variable substitution {@varName@} **/
-    public static final String VAR_VALUE_PATTERN = "\\{@[-\\w.\\$]+@\\}";
+    public static final String VAR_VALUE_PATTERN = "^\\{@[-\\w.\\$]+@\\}$";
 
     /**
      * Convenience method for parsing a string as JSON.
@@ -93,11 +93,21 @@ public class Json {
          *
          * Each string of a pattern {@varName@} will be replaced with
          * the actual value of that environment variable if it can be resolved.
-         * For example, "env" : { "index": 1, ...} "body" : {"index": "{@index@}
-         * ", ... }
+         * For example,
          *
-         * This will return JSON with the actual value of a var " {"index": 1,
-         * ...}
+         * "env" : { "min": 1, "y" : [ 1, 2, true ], "featureOn" : true },
+         * "body" : {
+         *      "name" : "minimum",
+         *      "value", "{@min@}",
+         *      "data" : "{@y@}",
+         *      "enabled" : "{@featureOn@}" } }
+         *
+         * This will result in JSON with the actual value of the variable index
+         * and y replacing the string variable references:
+         *      { "name" : "minimum",
+         *        "value", 1,
+         *        "data" : [ 1, 2, true ],
+         *        "enabled" : true }
          *
          * @param node
          *            the input JSON

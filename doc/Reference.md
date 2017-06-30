@@ -381,7 +381,7 @@ to the script.
 
 Variable names should be simple identifiers, so that they can be referenced
 in Groovy (or JavaScript) code. However, UnRAVL also imports all system variables, so some environment variables
-may exist with names such as `os.name`, `user.name` and `user.dir`. Hwoever,
+may exist with names such as `os.name`, `user.name` and `user.dir`. However,
 such variables are not available in Groovy (or JavaScript) scripts (but Groovy can directly access Java system properties via `System.getProperty(name)`.
 
 An environment binding is *referenced* by using the `{varName}`
@@ -488,6 +488,69 @@ Instead, use
 ```
 Here, the *`alt text`* is `%{U+007D}` which will expand to the desired `%}`.
 
+#### Variable Substitution
+In certain cases the actual value for a variable is desired during variable substitution. The `{varName}` notation mentioned above allows for the variable bound value to be embedded in a string. In order to get the actual JSON type value for the environment variable a different notation `{@varName@}` should be used.
+
+The variable name in this case is limited to the use of the following:
+
+*  alphanumeric characters `a-Z A-Z 0-9`,
+* '`.`' (period)
+* '`_`' (underscore)
+* '`$`' (dollar sign)
+* '`-`' (dash)
+
+Please, note that the alternate text binding for the actual value substitution is not  yet supported.
+
+Below is an example of both notations used interchangeably for variable substitution.
+
+```JSON
+{ "name" : "GamePlayers",
+  "env" : { "API_ROOT": "http://www.httpbin.org",
+            "ucode": "U495",
+            "maxScore": 1000.5,
+            "minScore": 10,
+            "address": {"streetName" : "Mango Circle Dr.", "unitNumber": 451, "city": "Live Oak", "state": "FL", "country": "USA", "zip": 32064},
+            "phone": "3866549000",
+            "email": "stranger@somemail.com",
+            "gameOver": true,
+            "scores": [10, 99, 100.5, 900, 1000.5]         
+   },
+  "POST" : "{API_ROOT}/post",
+  "headers" : { "Content-Type" : "text/plain",
+                "Accept" : "text/plain",
+                "Agent" : "UnRAVL"
+              },
+  "body" : {"id": "{ucode}0008",
+            "name": "Bob",
+            "score": "{@maxScore@}",
+            "homeAddress": "{@address@}",
+            "contact": "{address} {phone} {email}",
+            "isFinished": "{@gameOver@}",
+            "gameScores": "{@scores@}"
+   },
+  "bind" : [ { "json" : "@-" },
+             { "groovy" : {
+                 "actual" : "responseBody.json",
+                 "sentHeaders" : "responseBody.headers"
+                 }
+             }
+             ],
+  "assert" : [
+      "sentHeaders['Accept'].textValue() == 'text/plain'",
+      "sentHeaders['Content-Type'].textValue() == 'text/plain'",
+      "sentHeaders['Agent'].textValue() == 'UnRAVL'",
+      { "groovy" : [ "actual.id.isTextual()", 
+                     "actual.score.isDouble()",  
+                     "actual.isFinished.isBoolean()", 
+                     "actual.homeAddress.isObject()", 
+                     "actual.contact.isTextual()", 
+                     "actual.gameScores.isArray()"
+                   ]
+      }
+   ]
+}
+```
+
 #### Examples
 
 Here is an example that shows setting values in an environment,
@@ -536,7 +599,7 @@ interpreter will evaluate the  expression
 `actualLat` and `latitude`. However, for the expression
 `"{actualLat} == {latitude}"`, UnRAVL will perform veriable substitution
 *before* passing the expression to Groovy  to evaluate. Thus,
-teh expression evaluated by Groovy is will be `27.988056 == 27.988056`.
+the expression evaluated by Groovy is will be `27.988056 == 27.988056`.
 Both will be true, but derived in different ways. The former lets Groovy
 resolve the variable; the latter lets UnRAVL expand the variables as
 text first.

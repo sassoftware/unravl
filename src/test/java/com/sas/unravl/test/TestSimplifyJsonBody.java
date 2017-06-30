@@ -259,16 +259,16 @@ public class TestSimplifyJsonBody extends TestBase {
                 "{'body':{'name':'{@badValue@}'}}");
     }
 
-    //string containing @
+    //varName containing alphanumeric @ - . $ _
 
     @Test
-    public void testVarSubstitionWithAtValue() throws Exception {
+    public void testVarSubstitionWithAtName() throws Exception {
         assertRequestBodyJson("{'name':'{@bad@Value@}'}",
                 "{'env': {'bad@Value': 1}, 'body':{'json':{'name':'{@bad@Value@}'}}}");
     }
 
     @Test
-    public void testVarSubstitionWithAtValueThatReturnsString() throws Exception {
+    public void testVarSubstitionWithAtNameThatReturnsString() throws Exception {
         assertRequestBodyJson("{'name':'{bad@Value}'}",
                 "{'env': {'bad@Value': 1}, 'body':{'json':{'name':'{bad@Value}'}}}");
     }
@@ -277,6 +277,12 @@ public class TestSimplifyJsonBody extends TestBase {
     public void testVarSubstitionWithNoVarValue() throws Exception {
         assertRequestBodyJson("{'name':'{@@}'}",
                 "{'body':{'json':{'name':'{@@}'}}}");
+    }
+
+    @Test
+    public void testVarNameWithAllSupportedChars() throws Exception {
+        assertRequestBodyJson("{'name':1}",
+                "{'env': {'$master-tree.1_ab': 1}, 'body':{'json':{'name':'{@$master-tree.1_ab@}'}}}");
     }
 
     // integer

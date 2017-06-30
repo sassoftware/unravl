@@ -1,6 +1,7 @@
 package com.sas.unravl.util;
 
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -31,6 +32,9 @@ public class VariableResolver {
             .compile("^[-\\w.\\$]+$");
     public final static Pattern UNICODE_CHARACTER_NAME_PATTERN = Pattern
             .compile("^[Uu]\\+[0-9A-Fa-f]{4}$");
+
+    public final static Pattern VAR_VALUE_PATTERN = Pattern
+            .compile("[^\\{@][-\\w.\\$]+[^@\\}]");
 
     private String input; // the input string that we will expand
     private final Map<String, Object> env;
@@ -232,24 +236,24 @@ public class VariableResolver {
     }
 
     /**
-     * This method resolves the variable value given the variable name. This
-     * will return the value of the variable as an object from the Environment
-     * key-values map. The var name is of form {@varName@}. If the varName is
-     * invalid or cannot be found in the list of vars the var value won't be
-     * resolved. This method does not resolve and append the var value into a
-     * string.
+     * This method resolves the variable value given the encoded variable name.
+     * It will match the variable name in the pattern and will return the value
+     * of the variable as an object from the Environment key-values map. The var
+     * name is of form {@varName@}. If the varName is invalid or
+     * cannot be found in the list of vars the var value won't be resolved. This
+     * method does not resolve and append the var value into a string.
      *
      * @param varName
      *            the encoded name of a variable
      * @return the variable value
      */
     public Object resolveVarValue(String varName) {
-        int startIndex = varName.indexOf(VAR_VALUE_DELIMITER) + 1;
-        String candidateVarName = varName.substring(startIndex,
-                varName.indexOf(VAR_VALUE_DELIMITER, startIndex));
-        if (isValidVarName(candidateVarName)
-                && env.containsKey(candidateVarName)) {
-            return env.get(candidateVarName);
+        Matcher matcher = VAR_VALUE_PATTERN.matcher(varName);
+        if (matcher.find()) {
+            String candidateVarName = matcher.group();
+            if (env.containsKey(candidateVarName)) {
+                return env.get(candidateVarName);
+            }
         }
         return varName;
     }
