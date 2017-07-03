@@ -48,9 +48,6 @@ public class Json {
     private static ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = Logger.getLogger(Json.class);
 
-    /** defines a pattern for variable substitution {@varName@} **/
-    public static final String VAR_VALUE_PATTERN = "^\\{@[-\\w.\\$]+@\\}$";
-
     /**
      * Convenience method for parsing a string as JSON.
      *
@@ -87,7 +84,7 @@ public class Json {
 
         /**
          * A recursive JsonNode transformation mapping function which replaces
-         * each string with its environment expansion, That is, replace
+         * each string with its environment expansion. That is, replace
          * {varName} with the current binding for "varName" in the script's
          * environment.
          *
@@ -96,18 +93,12 @@ public class Json {
          * For example,
          *
          * "env" : { "min": 1, "y" : [ 1, 2, true ], "featureOn" : true },
-         * "body" : {
-         *      "name" : "minimum",
-         *      "value", "{@min@}",
-         *      "data" : "{@y@}",
-         *      "enabled" : "{@featureOn@}" } }
+         * "body" : { "name" : "minimum", "value", "{@min@}", "data" : "
+         * {@y@}", "enabled" : "{@featureOn@}" } }
          *
          * This will result in JSON with the actual value of the variable index
-         * and y replacing the string variable references:
-         *      { "name" : "minimum",
-         *        "value", 1,
-         *        "data" : [ 1, 2, true ],
-         *        "enabled" : true }
+         * and y replacing the string variable references: { "name" : "minimum",
+         * "value", 1, "data" : [ 1, 2, true ], "enabled" : true }
          *
          * @param node
          *            the input JSON
@@ -117,16 +108,11 @@ public class Json {
             @Override
             public JsonNode apply(JsonNode node) {
                 if (node.isTextual()) {
-                    if (isValueNode(node.textValue())) {
+                    if (script.getRuntime().isValueNode(node.textValue())) {
                         Object nodeValue = script
                                 .obtainVariableValue(node.textValue());
                         if (nodeValue instanceof Boolean) {
-                            boolean boolValue = (Boolean) nodeValue;
-                            if (boolValue) {
-                                return BooleanNode.getTrue();
-                            } else {
-                                return BooleanNode.getFalse();
-                            }
+                            return BooleanNode.valueOf(((Boolean) nodeValue));
                         } else if (nodeValue instanceof Integer) {
                             return new IntNode((Integer) nodeValue);
                         } else if (nodeValue instanceof Double) {
@@ -484,23 +470,6 @@ public class Json {
             ArrayNode a = wrap(o);
             JsonNode n = a.get(0);
             return n;
-        }
-    }
-
-    /**
-     * Checks if a node is a value node. If a node is of pattern {@varName@
-     * } it is a value node; that is return the actual value for that
-     * node instead of embedding the value to a string.
-     *
-     * @param node
-     *            a textual node
-     * @return if the node is a value node
-     */
-    private static boolean isValueNode(String node) {
-        if ((node == null) || (node.isEmpty())) {
-            return false;
-        } else {
-            return node.matches(VAR_VALUE_PATTERN);
         }
     }
 }

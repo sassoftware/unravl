@@ -506,7 +506,7 @@ Below is an example of both notations used interchangeably for variable substitu
 ```JSON
 { "name" : "GamePlayers",
   "env" : { "API_ROOT": "http://www.httpbin.org",
-            "ucode": "U495",
+            "ucode": "495",
             "maxScore": 1000.5,
             "minScore": 10,
             "address": {"streetName" : "Mango Circle Dr.", "unitNumber": 451, "city": "Live Oak", "state": "FL", "country": "USA", "zip": 32064},
@@ -539,14 +539,24 @@ Below is an example of both notations used interchangeably for variable substitu
       "sentHeaders['Accept'].textValue() == 'text/plain'",
       "sentHeaders['Content-Type'].textValue() == 'text/plain'",
       "sentHeaders['Agent'].textValue() == 'UnRAVL'",
-      { "groovy" : [ "actual.id.isTextual()", 
-                     "actual.score.isDouble()",  
-                     "actual.isFinished.isBoolean()", 
-                     "actual.homeAddress.isObject()", 
-                     "actual.contact.isTextual()", 
-                     "actual.gameScores.isArray()"
-                   ]
-      }
+      "actual.id.isTextual()", 
+      "actual.score.isDouble()",  
+      "actual.isFinished.isBoolean()", 
+      "actual.homeAddress.isObject()", 
+      "actual.contact.isTextual()", 
+      "actual.gameScores.isArray()",
+      "actual.id.textValue().equals('{ucode}0008')",
+      "actual.name.textValue().equals('Bob')",
+      "actual.score.doubleValue() == maxScore",
+      "actual.isFinished.booleanValue() == gameOver",
+      "actual.homeAddress.get('streetName').textValue().equals('Mango Circle Dr.')",
+      "actual.homeAddress.get('unitNumber').intValue() == 451",
+      "actual.homeAddress.get('city').textValue().equals('Live Oak')",
+      "actual.homeAddress.get('state').textValue().equals('FL')",
+      "actual.homeAddress.get('country').textValue().equals('USA')",
+      "actual.homeAddress.get('zip').intValue() == 32064",
+      "actual.contact.textValue().equals(address.toString() + ' ' + phone + ' ' + email)",
+      "actual.gameScores == scores"
    ]
 }
 ```

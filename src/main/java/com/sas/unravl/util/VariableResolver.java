@@ -23,8 +23,6 @@ import java.util.regex.Pattern;
 public class VariableResolver {
 
     private static final char OPENING_BRACE = '{';
-    /** delimiter for variable substitution **/
-    public static final char VAR_VALUE_DELIMITER = '@';
     private static final char DELIMITER = '|';
     private static final char CLOSING_BRACE = '}';
 
@@ -33,7 +31,10 @@ public class VariableResolver {
     public final static Pattern UNICODE_CHARACTER_NAME_PATTERN = Pattern
             .compile("^[Uu]\\+[0-9A-Fa-f]{4}$");
 
-    public final static Pattern VAR_VALUE_PATTERN = Pattern
+    /** defines a pattern for variable substitution {@varName@} **/
+    public static final String IS_VAR_VALUE_PATTERN = "^\\{@[-\\w.\\$]+@\\}$";
+    /** defines a pattern for a variable name within a variable value pattern **/
+    public final static Pattern VAR_NAME_IN_VALUE_PATTERN = Pattern
             .compile("[^\\{@][-\\w.\\$]+[^@\\}]");
 
     private String input; // the input string that we will expand
@@ -236,6 +237,23 @@ public class VariableResolver {
     }
 
     /**
+     * Checks if a node is a value node. If a node is of pattern {@varName@}
+     * it is a value node; that is return the actual value for that
+     * node instead of embedding the value to a string.
+     *
+     * @param node
+     *            a textual node
+     * @return if the node is a value node
+     */
+    public boolean isValueNode(String node) {
+        if ((node == null) || (node.isEmpty())) {
+            return false;
+        } else {
+            return node.matches(IS_VAR_VALUE_PATTERN);
+        }
+    }
+
+    /**
      * This method resolves the variable value given the encoded variable name.
      * It will match the variable name in the pattern and will return the value
      * of the variable as an object from the Environment key-values map. The var
@@ -248,7 +266,7 @@ public class VariableResolver {
      * @return the variable value
      */
     public Object resolveVarValue(String varName) {
-        Matcher matcher = VAR_VALUE_PATTERN.matcher(varName);
+        Matcher matcher = VAR_NAME_IN_VALUE_PATTERN.matcher(varName);
         if (matcher.find()) {
             String candidateVarName = matcher.group();
             if (env.containsKey(candidateVarName)) {

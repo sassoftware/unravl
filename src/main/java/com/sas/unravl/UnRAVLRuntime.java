@@ -127,6 +127,17 @@ public class UnRAVLRuntime implements Cloneable {
     }
 
     /**
+     * Gets a variable resolver for this runtime.
+     * @return variable resolver
+     */
+    public VariableResolver getVariableResolver(){
+        if (variableResolver == null) {
+            variableResolver = new VariableResolver(getBindings());
+        }
+        return variableResolver;
+    }
+
+    /**
      * Return a script engine that can evaluate (interpret) script strings. The
      * returned engine is determined by the UnRAVLPlugins; the default is a
      * Groovy engine if Groovy is available. The system property
@@ -389,10 +400,7 @@ public class UnRAVLRuntime implements Cloneable {
     public String expand(String text) {
         if (text == null)
             return null;
-        if (variableResolver == null) {
-            variableResolver = new VariableResolver(getBindings());
-        }
-        return variableResolver.expand(text);
+        return getVariableResolver().expand(text);
     }
 
     /**
@@ -589,19 +597,26 @@ public class UnRAVLRuntime implements Cloneable {
     }
 
     /**
+     * Checks if a node is a value node.
+     *
+     * @param node
+     *            a textual node
+     * @return if the node is a value node
+     */
+    public boolean isValueNode(String node) {
+        return getVariableResolver().isValueNode(node);
+    }
+
+    /**
      * Obtains the actual value for the variable
      * from the environment bindings.
-     * 
+     *
      * @param varName the variable name in braces
      * @return object value for the variable
      */
     public Object obtainVariableValue(String varName) {
         if (varName == null)
             return null;
-        if (variableResolver == null) {
-            variableResolver = new VariableResolver(getBindings());
-        }
-        return variableResolver.resolveVarValue(varName);
+        return getVariableResolver().resolveVarValue(varName);
     }
-
 }
