@@ -392,16 +392,16 @@ The value of that binding is substituted, replacing `{varName}` with the value b
 to *`varName`*. 
 
 For example: 
-'''JSON
+```JSON
 {
   "env" : { "name" : "UnRAVL",
             "suggestion" : `"Use {name} to test your APIs"`
            }
 }
-
-The variable `name` is bound to tje JSON string `"UnRAVL"`.
+```
+The variable `name` is bound to the JSON string `"UnRAVL"`.
 The value of the variable named `"suggestion"` will be
-`"Use {name} to test your APIs"`.
+`"Use UnRAVL to test your APIs"`.
 
 If a variable is not bound, this notation passes through. That is,
 the value of `{undefinedVariable}` is `{undefinedVariable}`.
