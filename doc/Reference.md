@@ -489,7 +489,7 @@ Instead, use
 Here, the *`alt text`* is `%{U+007D}` which will expand to the desired `%}`.
 
 #### Variable Substitution
-In certain cases the actual value for a variable is desired during variable substitution. The `{varName}` notation mentioned above allows for the variable bound value to be embedded in a string. In order to get the actual JSON type value for the environment variable a different notation `{@varName@}` should be used.
+In certain cases the actual value for a variable is desired during variable substitution. The `{varName}` notation mentioned above allows for the variable bound value to be embedded in a string. In order to get the actual JSON type value for the environment variable a different notation `{@varName@}` should be used. The entire string has to be of the form `"{@varName@}"` for the actual value replacement. That is, the following string will not get resolved with this notation: "prefix text `{@varName@}` other text". However, it can be successfully expanded with the string variable replacement: "prefix text `{varName}` other text".
 
 The variable name in this case is limited to the use of the following:
 
@@ -499,9 +499,9 @@ The variable name in this case is limited to the use of the following:
 * '`$`' (dollar sign)
 * '`-`' (dash)
 
-Please, note that the alternate text binding for the actual value substitution is not  yet supported.
+Please, note that the alternate text binding for the actual value substitution is not yet supported. 
 
-Below is an example of both notations used interchangeably for variable substitution.
+Below is an example of both notations used for variable substitution.
 
 ```JSON
 { "name" : "GamePlayers",

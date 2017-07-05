@@ -90,6 +90,12 @@ public class Json {
          *
          * Each string of a pattern {@varName@} will be replaced with
          * the actual value of that environment variable if it can be resolved.
+         * The entire string has to be of that pattern; that is there is no
+         * string expansion with the actual value replacement. The following
+         * string cannot be resolved with this notation: "prefix text
+         * {@varName@} other text". However, it can be expanded with
+         * the string variable replacement: "prefix text {varName} other text".
+         *
          * For example,
          *
          * "env" : { "min": 1, "y" : [ 1, 2, true ], "featureOn" : true },
@@ -100,6 +106,8 @@ public class Json {
          * and y replacing the string variable references: { "name" : "minimum",
          * "value", 1, "data" : [ 1, 2, true ], "enabled" : true }
          *
+         *
+         *
          * @param node
          *            the input JSON
          * @return the node or a replacement which the text expanded.
@@ -109,8 +117,8 @@ public class Json {
             public JsonNode apply(JsonNode node) {
                 if (node.isTextual()) {
                     if (script.getRuntime().isValueNode(node.textValue())) {
-                        Object nodeValue = script
-                                .obtainVariableValue(node.textValue());
+                        Object nodeValue = script.obtainVariableValue(node
+                                .textValue());
                         if (nodeValue instanceof Boolean) {
                             return BooleanNode.valueOf(((Boolean) nodeValue));
                         } else if (nodeValue instanceof Integer) {
