@@ -1,6 +1,21 @@
 // Copyright (c) 2014, SAS Institute Inc., Cary, NC, USA, All Rights Reserved
 package com.sas.unravl.util;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,19 +38,6 @@ import com.google.common.base.Function;
 import com.sas.unravl.UnRAVL;
 import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.generators.Text;
-
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
 
 /**
  * JSON utility methods.
@@ -82,9 +84,29 @@ public class Json {
 
         /**
          * A recursive JsonNode transformation mapping function which replaces
-         * each string with its environment expansion, That is, replace
+         * each string with its environment expansion. That is, replace
          * {varName} with the current binding for "varName" in the script's
          * environment.
+         *
+         * Each string of a pattern {@varName@} will be replaced with
+         * the actual value of that environment variable if it can be resolved.
+         * The entire string has to be of that pattern; that is there is no
+         * string expansion with the actual value replacement. The following
+         * string cannot be resolved with this notation: "prefix text
+         * {@varName@} other text". However, it can be expanded with
+         * the string variable replacement: "prefix text {varName} other text".
+         *
+         * For example,
+         *
+         * "env" : { "min": 1, "y" : [ 1, 2, true ], "featureOn" : true },
+         * "body" : { "name" : "minimum", "value", "{@min@}", "data" : "
+         * {@y@}", "enabled" : "{@featureOn@}" } }
+         *
+         * This will result in JSON with the actual value of the variable index
+         * and y replacing the string variable references: { "name" : "minimum",
+         * "value", 1, "data" : [ 1, 2, true ], "enabled" : true }
+         *
+         *
          *
          * @param node
          *            the input JSON
@@ -94,7 +116,35 @@ public class Json {
             @Override
             public JsonNode apply(JsonNode node) {
                 if (node.isTextual()) {
-                    return new TextNode(script.expand(node.textValue()));
+                    if (script.getRuntime().isValueNode(node.textValue())) {
+                        Object nodeValue = script.obtainVariableValue(node
+                                .textValue());
+                        if (nodeValue instanceof Boolean) {
+                            return BooleanNode.valueOf(((Boolean) nodeValue));
+                        } else if (nodeValue instanceof Integer) {
+                            return new IntNode((Integer) nodeValue);
+                        } else if (nodeValue instanceof Double) {
+                            return new DoubleNode((Double) nodeValue);
+                        } else if (nodeValue instanceof BigInteger) {
+                            return new BigIntegerNode((BigInteger) nodeValue);
+                        } else if (nodeValue instanceof BigDecimal) {
+                            return new DecimalNode((BigDecimal) nodeValue);
+                        } else if (nodeValue instanceof Long) {
+                            return new LongNode((Long) nodeValue);
+                        } else if (nodeValue instanceof String) {
+                            return new TextNode(nodeValue.toString());
+                        } else if (nodeValue instanceof ArrayNode) {
+                            return (ArrayNode) nodeValue;
+                        } else if (nodeValue instanceof ObjectNode) {
+                            return (ObjectNode) nodeValue;
+                        } else if (nodeValue == null) {
+                            return NullNode.getInstance();
+                        } else {
+                            return new TextNode(nodeValue.toString());
+                        }
+                    } else {
+                        return new TextNode(script.expand(node.textValue()));
+                    }
                 } else if (node.isArray()) {
                     ArrayNode from = (ArrayNode) node;
                     ArrayNode to = new ArrayNode(jnf);
@@ -430,5 +480,4 @@ public class Json {
             return n;
         }
     }
-
 }

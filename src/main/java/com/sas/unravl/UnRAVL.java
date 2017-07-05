@@ -1,13 +1,5 @@
 package com.sas.unravl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sas.unravl.assertions.UnRAVLAssertion;
-import com.sas.unravl.assertions.UnRAVLAssertion.Stage;
-import com.sas.unravl.extractors.UnRAVLExtractor;
-import com.sas.unravl.util.Json;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,6 +12,14 @@ import javax.script.ScriptException;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sas.unravl.assertions.UnRAVLAssertion;
+import com.sas.unravl.assertions.UnRAVLAssertion.Stage;
+import com.sas.unravl.extractors.UnRAVLExtractor;
+import com.sas.unravl.util.Json;
 
 /**
  * An UnRAVL script object - this is a wrapper around a JSON UnRAVL script. An
@@ -38,7 +38,7 @@ import org.apache.log4j.Logger;
  * <p>
  * This class only executes a single UnRAVL test, represented by a JSON object.
  * It does not execute a JSON array of scripts; use UnRAVLRuntime
- * 
+ *
  * TODO: This class is too large and does too much. Refactor.
  *
  * @author David.Biesack@sas.com
@@ -293,7 +293,7 @@ public class UnRAVL {
      * Bind a value within this script's environment. This will add a new
      * binding if <var>varName</var> is not yet bound, or replace the old
      * binding.
-     * 
+     *
      * @param varName
      *            the variable name
      * @param value
@@ -308,7 +308,7 @@ public class UnRAVL {
 
     /**
      * Return the value bound to a variable in this script's environment
-     * 
+     *
      * @param varName
      *            the variable name
      * @return the value bound to the variable
@@ -320,7 +320,7 @@ public class UnRAVL {
 
     /**
      * Test if the value bound in this script's environment
-     * 
+     *
      * @param varName
      *            the variable name
      * @return true iff the variable is bound
@@ -385,6 +385,19 @@ public class UnRAVL {
                     + e.getClass().getName() + ", " + e.getMessage());
             throw new UnRAVLException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Gets the value for the variable in a text node in a form of {@varName@
+     * }. The values are retrieved from the Environment keys-values
+     * map bindings.
+     *
+     * @param varName
+     *            the variable name in braces
+     * @return the object value of the variable
+     */
+    public Object obtainVariableValue(String varName) {
+        return getRuntime().obtainVariableValue(varName);
     }
 
 }

@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'eclipse' // run './gradlew eclipse' to update Eclipse .classpath, then refresh Eclipse project
 
 group = 'com.sas'
-version = '1.3.1'
+version = '1.4.0-SNAPSHOT'
 
 description = "Uniform REST API Validation Language"
 

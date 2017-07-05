@@ -1,22 +1,5 @@
 package com.sas.unravl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.json.JsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import com.jayway.jsonpath.spi.mapper.MappingProvider;
-import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
-import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
-import com.sas.unravl.assertions.UnRAVLAssertionException;
-import com.sas.unravl.generators.UnRAVLRequestBodyGenerator;
-import com.sas.unravl.util.Json;
-import com.sas.unravl.util.VariableResolver;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
@@ -38,6 +21,23 @@ import javax.script.SimpleBindings;
 import org.apache.log4j.Logger;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import com.sas.unravl.annotations.UnRAVLAssertionPlugin;
+import com.sas.unravl.annotations.UnRAVLExtractorPlugin;
+import com.sas.unravl.assertions.UnRAVLAssertionException;
+import com.sas.unravl.generators.UnRAVLRequestBodyGenerator;
+import com.sas.unravl.util.Json;
+import com.sas.unravl.util.VariableResolver;
 
 /**
  * The runtime environment for running UnRAVL scripts. The runtime contains the
@@ -75,7 +75,7 @@ public class UnRAVLRuntime implements Cloneable {
 
     /**
      * Instantiate a new runtime with the given environment
-     * 
+     *
      * @param environment
      *            name/value bindings
      */
@@ -93,7 +93,7 @@ public class UnRAVLRuntime implements Cloneable {
      * Instantiate a new runtime with the environment of the input runtime
      * instance. The environment is copied, but the new runtime gets its own
      * empty list of calls, scripts, and templates.
-     * 
+     *
      * @param runtime
      *            an existing Runtime (may not be null)
      */
@@ -118,12 +118,23 @@ public class UnRAVLRuntime implements Cloneable {
     /**
      * Set this runtime's default script language, used to evaluate "if"
      * conditions, "links"/"hrefs" from expressions, and string assertions
-     * 
+     *
      * @param language
      *            the script language, such as "groovy" or "javascript"
      */
     public void setScriptLanguage(String language) {
         this.scriptLanguage = language;
+    }
+
+    /**
+     * Gets a variable resolver for this runtime.
+     * @return variable resolver
+     */
+    public VariableResolver getVariableResolver(){
+        if (variableResolver == null) {
+            variableResolver = new VariableResolver(getBindings());
+        }
+        return variableResolver;
     }
 
     /**
@@ -134,7 +145,7 @@ public class UnRAVLRuntime implements Cloneable {
      * the default is "Groovy". Run with -Dunravl.script.language=
      * <em>language</em> such as -Dunravl.script.language=JavaScript to choose
      * an alternate language
-     * 
+     *
      * @return a script engine
      * @throws UnRAVLException
      *             if no interpreter exists for the configured script language
@@ -146,7 +157,7 @@ public class UnRAVLRuntime implements Cloneable {
     /**
      * Return a script engine that can evaluate (interpret) script strings using
      * the named script language
-     * 
+     *
      * @param lang
      *            the script language, such as "groovy' or "javascript"
      * @return a script interpreter
@@ -389,10 +400,7 @@ public class UnRAVLRuntime implements Cloneable {
     public String expand(String text) {
         if (text == null)
             return null;
-        if (variableResolver == null) {
-            variableResolver = new VariableResolver(getBindings());
-        }
-        return variableResolver.expand(text);
+        return getVariableResolver().expand(text);
     }
 
     /**
@@ -406,7 +414,7 @@ public class UnRAVLRuntime implements Cloneable {
      * on <code>bind("two", Integer.valueOf(2))</code>, this will fire an event
      * with the property named <code>"env.two"</code>.
      * </p>
-     * 
+     *
      * @see #unbind(String)
      * @param varName
      *            variable name
@@ -437,9 +445,9 @@ public class UnRAVLRuntime implements Cloneable {
     }
 
     /**
-     * Remove a variable binding from this runtime. This undoes what {@link
-     * #bind(String,Object)} does
-     * 
+     * Remove a variable binding from this runtime. This undoes what
+     * {@link #bind(String,Object)} does
+     *
      * @param varName
      *            the name of the variable to remove
      * @see #bind(String,Object)
@@ -450,7 +458,7 @@ public class UnRAVLRuntime implements Cloneable {
 
     /**
      * Return the value bound to a variable in this runtime's environment
-     * 
+     *
      * @param varName
      *            the variable name
      * @return the value bound to the variable
@@ -461,7 +469,7 @@ public class UnRAVLRuntime implements Cloneable {
 
     /**
      * Test if the value bound in this script's environment
-     * 
+     *
      * @param varName
      *            the variable name
      * @return true iff the variable is bound
@@ -472,7 +480,7 @@ public class UnRAVLRuntime implements Cloneable {
 
     /**
      * Call this when bindings have changed.
-     * 
+     *
      * @deprecated no longer needed. This method will be removed in 1.1.0
      */
     @Deprecated
@@ -588,4 +596,27 @@ public class UnRAVLRuntime implements Cloneable {
         this.pcs.removePropertyChangeListener(listener);
     }
 
+    /**
+     * Checks if a node is a value node.
+     *
+     * @param node
+     *            a textual node
+     * @return if the node is a value node
+     */
+    public boolean isValueNode(String node) {
+        return getVariableResolver().isValueNode(node);
+    }
+
+    /**
+     * Obtains the actual value for the variable
+     * from the environment bindings.
+     *
+     * @param varName the variable name in braces
+     * @return object value for the variable
+     */
+    public Object obtainVariableValue(String varName) {
+        if (varName == null)
+            return null;
+        return getVariableResolver().resolveVarValue(varName);
+    }
 }

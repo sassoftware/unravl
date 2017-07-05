@@ -1,0 +1,61 @@
+{ "name" : "GamePlayers",
+  "env" : { "API_ROOT": "http://www.httpbin.org",
+            "ucode": "495",
+            "maxScore": 1000.5,
+            "minScore": 10,
+            "streetName": "Mango Circle Dr.",
+            "unitNumber": 451,
+            "cityName": "Live Oak",
+            "stateName": "FL",
+            "countryName": "USA",
+            "zipCode": 32064,
+            "address": {"street" : "{streetName}", "unit": "{@unitNumber@}", "city": "{cityName}", "state": "{stateName}", "country": "{countryName}", "zip": "{@zipCode@}"},
+            "phone": "3866549000",
+            "email": "stranger@somemail.com",
+            "gameOver": true,
+            "scores": [10, 99, 100.5, 900, 1000.5]         
+   },
+  "POST" : "{API_ROOT}/post",
+  "headers" : { "Content-Type" : "text/plain",
+                "Accept" : "text/plain",
+                "Agent" : "UnRAVL"
+              },
+  "body" : {"id": "{ucode}0008",
+            "name": "Bob",
+            "score": "{@maxScore@}",
+            "homeAddress": "{@address@}",
+            "contact": "{address} {phone} {email}",
+            "isFinished": "{@gameOver@}",
+            "gameScores": "{@scores@}"
+   },
+  "bind" : [ { "json" : "@-" },
+             { "groovy" : {
+                 "actual" : "responseBody.json",
+                 "sentHeaders" : "responseBody.headers"
+                 }
+             }
+             ],
+  "assert" : [
+      "sentHeaders['Accept'].textValue() == 'text/plain'",
+      "sentHeaders['Content-Type'].textValue() == 'text/plain'",
+      "sentHeaders['Agent'].textValue() == 'UnRAVL'",
+      "actual.id.isTextual()", 
+      "actual.score.isDouble()",  
+      "actual.isFinished.isBoolean()", 
+      "actual.homeAddress.isObject()", 
+      "actual.contact.isTextual()", 
+      "actual.gameScores.isArray()",
+      "actual.id.textValue().equals('{ucode}0008')",
+      "actual.name.textValue().equals('Bob')",
+      "actual.score.doubleValue() == maxScore",
+      "actual.isFinished.booleanValue() == gameOver",
+      "actual.homeAddress.get('street').textValue().equals(streetName)",
+      "actual.homeAddress.get('unit').intValue() == unitNumber",
+      "actual.homeAddress.get('city').textValue().equals(cityName)",
+      "actual.homeAddress.get('state').textValue().equals(stateName)",
+      "actual.homeAddress.get('country').textValue().equals(countryName)",
+      "actual.homeAddress.get('zip').intValue() == zipCode",
+      "actual.contact.textValue().equals(address.toString() + ' ' + phone + ' ' + email)",
+      "actual.gameScores == scores"
+   ]
+}

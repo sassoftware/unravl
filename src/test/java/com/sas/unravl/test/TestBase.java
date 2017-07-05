@@ -1,14 +1,14 @@
 package com.sas.unravl.test;
 
+import java.util.HashMap;
+
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sas.unravl.UnRAVL;
 import com.sas.unravl.UnRAVLException;
 import com.sas.unravl.UnRAVLRuntime;
 import com.sas.unravl.util.Json;
-
-import java.util.HashMap;
-
-import org.junit.Test;
 
 public class TestBase {
 
@@ -29,7 +29,7 @@ public class TestBase {
 
     /**
      * Convenience test method that constructs a JsonNode from a Json string
-     * 
+     *
      * @param string
      *            A string containing JSON, but which uses ' instead of " to
      *            quote strings. This allows easier encoding of JSON strings in

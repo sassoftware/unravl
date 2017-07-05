@@ -1,6 +1,7 @@
 package com.sas.unravl.util;
 
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -16,7 +17,7 @@ import java.util.regex.Pattern;
  * {U+002D} will be replaced with the right curly (close) brace, '}', and
  * {U+03C0} will be replaced with the Unicode GREEK SMALL LETTER PI &#x3c0;
  * </ol>
- * 
+ *
  * @author David.Biesack@sas.com
  */
 public class VariableResolver {
@@ -30,6 +31,12 @@ public class VariableResolver {
     public final static Pattern UNICODE_CHARACTER_NAME_PATTERN = Pattern
             .compile("^[Uu]\\+[0-9A-Fa-f]{4}$");
 
+    /** defines a pattern for variable substitution {@varName@} **/
+    public static final String IS_VAR_VALUE_PATTERN = "^\\{@[-\\w.\\$]+@\\}$";
+    /** defines a pattern for a variable name within a variable value pattern **/
+    public final static Pattern VAR_NAME_IN_VALUE_PATTERN = Pattern
+            .compile("[^\\{@][-\\w.\\$]+[^@\\}]");
+
     private String input; // the input string that we will expand
     private final Map<String, Object> env;
     private int len;
@@ -39,7 +46,7 @@ public class VariableResolver {
     /**
      * Construct a reusable resolver that uses an environment. After creating,
      * call {@link #expand(String)}.
-     * 
+     *
      * @param environment
      *            Non-null mapping of variable names to values
      */
@@ -50,7 +57,7 @@ public class VariableResolver {
     /**
      * Expand variable references {varname} or {undefinedVarName|alt value} in
      * the input string source
-     * 
+     *
      * @param input
      *            the input source string
      * @return the result of expanding variables in the input
@@ -62,7 +69,7 @@ public class VariableResolver {
 
     /**
      * Expand variable references in the input
-     * 
+     *
      * @return the expanded input string
      */
     private synchronized String expand() {
@@ -212,7 +219,7 @@ public class VariableResolver {
     /**
      * Test if a string is a Unicode code point that matches the pattern
      * "U+hhhh".
-     * 
+     *
      * @param string
      *            the input string
      * @return True if string matches "U+hhhh" where hhhh is four hex digits.
@@ -229,4 +236,43 @@ public class VariableResolver {
         return (char) codePoint;
     }
 
+    /**
+     * Checks if a node is a value node. If a node is of pattern {@varName@}
+     * it is a value node; that is return the actual value for that
+     * node instead of embedding the value to a string.
+     *
+     * @param node
+     *            a textual node
+     * @return if the node is a value node
+     */
+    public boolean isValueNode(String node) {
+        if ((node == null) || (node.isEmpty())) {
+            return false;
+        } else {
+            return node.matches(IS_VAR_VALUE_PATTERN);
+        }
+    }
+
+    /**
+     * This method resolves the variable value given the encoded variable name.
+     * It will match the variable name in the pattern and will return the value
+     * of the variable as an object from the Environment key-values map. The var
+     * name is of form {@varName@}. If the varName is invalid or
+     * cannot be found in the list of vars the var value won't be resolved. This
+     * method does not resolve and append the var value into a string.
+     *
+     * @param varName
+     *            the encoded name of a variable
+     * @return the variable value
+     */
+    public Object resolveVarValue(String varName) {
+        Matcher matcher = VAR_NAME_IN_VALUE_PATTERN.matcher(varName);
+        if (matcher.find()) {
+            String candidateVarName = matcher.group();
+            if (env.containsKey(candidateVarName)) {
+                return env.get(candidateVarName);
+            }
+        }
+        return varName;
+    }
 }
