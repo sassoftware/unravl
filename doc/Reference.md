@@ -507,7 +507,7 @@ Here, the *`alt text`* is `%{U+007D}` which will expand to the desired `%}`.
 #### Variable value substitution
 
 The `{varName}` variable substitution notation described above only allows for the variable bound value to be embedded in a string. 
-In certain cases,  non-string values for variables is needed instead. In order to get the actual JSON type value, use a the `{@varName@}` notation instead. The entire string has to be of the form `"{@varName@}"` for the actual value replacement. That is, the following string will not get resolved with this notation: "prefix text `{@varName@}` other text". However, it can be successfully expanded with the string variable replacement: "prefix text `{varName}` other text".
+In certain cases,  non-string values for variables are needed instead. In order to get the actual JSON type values, use the `{@varName@}` notation instead. The entire string has to be of the form `"{@varName@}"` for the actual value replacement. That is, the string `"prefix text {@varName@} other text"` will not be resolved with this notation. However, it can be successfully expanded with the string variable replacement, `"prefix text {varName} other text"`.
 
 The variable name in this case is limited to the use of the following:
 
