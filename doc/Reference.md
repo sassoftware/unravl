@@ -395,7 +395,7 @@ For example:
 ```JSON
 {
   "env" : { "name" : "UnRAVL",
-            "suggestion" : `"Use {name} to test your APIs"`
+            "suggestion" : "Use {name} to test your APIs"
            }
 }
 ```
