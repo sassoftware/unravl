@@ -384,14 +384,30 @@ in Groovy (or JavaScript) code. However, UnRAVL also imports all system variable
 may exist with names such as `os.name`, `user.name` and `user.dir`. However,
 such variables are not available in Groovy (or JavaScript) scripts (but Groovy can directly access Java system properties via `System.getProperty(name)`.
 
+#### Variable value substitution
+
 An environment binding is *referenced* by using the `{varName}`
-notation. (Do not use leading or trailing whitespace.)
-The value of that binding is substituted.
-(However, Groovy or JavaScript scripts do not need the braces as the environment bindings
-are made directly available as script variables.)
+notation within string values in the JSON. (Do not use leading or trailing whitespace.)
+The value of that binding is substituted, replacing `{varName}` with the value bound
+to *`varName`*. 
+
+For example: 
+'''JSON
+{
+  "env" : { "name" : "UnRAVL",
+            "suggestion" : `"Use {name} to test your APIs"`
+           }
+}
+
+The variable `name` is bound to tje JSON string `"UnRAVL"`.
+The value of the variable named `"suggestion"` will be
+`"Use {name} to test your APIs"`.
 
 If a variable is not bound, this notation passes through. That is,
 the value of `{undefinedVariable}` is `{undefinedVariable}`.
+
+Note that [Groovy or JavaScript scripts](Assertions.md) do not need the braces as the environment bindings
+are made directly available as script variables.
 
 #### Automatically bound variables
 
@@ -488,8 +504,10 @@ Instead, use
 ```
 Here, the *`alt text`* is `%{U+007D}` which will expand to the desired `%}`.
 
-#### Variable Substitution
-In certain cases the actual value for a variable is desired during variable substitution. The `{varName}` notation mentioned above allows for the variable bound value to be embedded in a string. In order to get the actual JSON type value for the environment variable a different notation `{@varName@}` should be used. The entire string has to be of the form `"{@varName@}"` for the actual value replacement. That is, the following string will not get resolved with this notation: "prefix text `{@varName@}` other text". However, it can be successfully expanded with the string variable replacement: "prefix text `{varName}` other text".
+#### Variable value substitution
+
+The `{varName}` variable substitution notation described above only allows for the variable bound value to be embedded in a string. 
+In certain cases,  non-string values for variables is needed instead. In order to get the actual JSON type value, use a the `{@varName@}` notation instead. The entire string has to be of the form `"{@varName@}"` for the actual value replacement. That is, the following string will not get resolved with this notation: "prefix text `{@varName@}` other text". However, it can be successfully expanded with the string variable replacement: "prefix text `{varName}` other text".
 
 The variable name in this case is limited to the use of the following:
 
@@ -499,7 +517,7 @@ The variable name in this case is limited to the use of the following:
 * '`$`' (dollar sign)
 * '`-`' (dash)
 
-Please, note that the alternate text binding for the actual value substitution is not yet supported. 
+Note that the alternate text binding for the actual value substitution is not yet supported. 
 
 Below is an example of both notations used for variable substitution.
 

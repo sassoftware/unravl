@@ -77,7 +77,7 @@ public class Json {
      *            an input Json
      * @param script
      *            the Unravl script
-     * @return a new JsonNode with the text mapped
+     * @return a new JsonNode with the text expanded or replaced with values from the environment
      */
     public static JsonNode expand(JsonNode actual, final UnRAVL script) {
         final JsonNodeFactory jnf = jsonNodeFactory();
@@ -85,28 +85,33 @@ public class Json {
         /**
          * A recursive JsonNode transformation mapping function which replaces
          * each string with its environment expansion. That is, replace
-         * {varName} with the current binding for "varName" in the script's
+         * <code>{varName}</code> with the current binding for <code><em>varName</em></code> in the script's
          * environment.
          *
-         * Each string of a pattern {@varName@} will be replaced with
-         * the actual value of that environment variable if it can be resolved.
-         * The entire string has to be of that pattern; that is there is no
-         * string expansion with the actual value replacement. The following
-         * string cannot be resolved with this notation: "prefix text
-         * {@varName@} other text". However, it can be expanded with
-         * the string variable replacement: "prefix text {varName} other text".
+         * Each string matching a pattern <code>{@<em>varName</em>@}</code> will be replaced with
+         * the actual value of that environment variable <em>varName</em> if it can be resolved.
+         * The <em>entire string</em> has to match that pattern. The string
+         * <code>"prefix text {@varName@} other text"</code>
+         * ia not resolved with this notation. However, it can be expanded with
+         * the simple string variable replacement, <code>"prefix text {varName} other text"</code>.
          *
          * For example,
-         *
+         * <pre>
          * "env" : { "min": 1, "y" : [ 1, 2, true ], "featureOn" : true },
-         * "body" : { "name" : "minimum", "value", "{@min@}", "data" : "
-         * {@y@}", "enabled" : "{@featureOn@}" } }
+         * "body" : { "name" : "minimum", 
+         *            "value", "{@min@}", 
+         *            "data" : "{@y@}", 
+         *            "enabled" : "{@featureOn@}" }
+         * </pre>
          *
-         * This will result in JSON with the actual value of the variable index
-         * and y replacing the string variable references: { "name" : "minimum",
-         * "value", 1, "data" : [ 1, 2, true ], "enabled" : true }
-         *
-         *
+         * This will result in JSON with the actual values of the variables <code>min</code>
+         * <code>y</code> and <code>featureOn</code> replacing the string variable references: 
+         * <pre>
+         * { "name" : "minimum",
+         *   "value", 1, 
+         *   "data" : [ 1, 2, true ], 
+         *   "enabled" : true }
+         * </pre>
          *
          * @param node
          *            the input JSON
