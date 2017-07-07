@@ -5,17 +5,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Expand {varName} or {varName|alt text} or {U+nnnn} in strings.
+ * Expand <code>{varName}</code>, <code>{varName|alt text}</code>, <code>{{@literal @}varName@}</code>, <code>{U+nnnn}</code> in strings.
  * <ol>
- * <li>Variables (bound with "env" elements or "groovy" elements) may be
- * referenced in strings via {varName} and replaced with their corresponding
+ * <li>Variables (bound with <code>"env"</code> elements or <code>"groovy"</code> elements) may be
+ * referenced in strings via <code>{varName}</code> and replaced with their corresponding
  * string value.
+ * <li>Variables  may be referenced in JSON via <code>"{{@literal @}varName@}"</code> and replaced with their corresponding
+ * JSON value.
  * <li>
  * If a variable is not bound, alternate text is substituted instead.
  * <li>Any Unicode code point may be inserted by referencing it using U+nnnn
  * where nnnn is four hex digits naming a Unicode code point. For example,
- * {U+002D} will be replaced with the right curly (close) brace, '}', and
- * {U+03C0} will be replaced with the Unicode GREEK SMALL LETTER PI &#x3c0;
+ * <code>{U+002D}</code> will be replaced with the right curly (close) brace, '}', and
+ * <code>{U+03C0}</code> will be replaced with the Unicode GREEK SMALL LETTER PI &#x3c0;
  * </ol>
  *
  * @author David.Biesack@sas.com
@@ -31,7 +33,7 @@ public class VariableResolver {
     public final static Pattern UNICODE_CHARACTER_NAME_PATTERN = Pattern
             .compile("^[Uu]\\+[0-9A-Fa-f]{4}$");
 
-    /** defines a pattern for variable substitution {@varName@} **/
+    /** defines a pattern for variable substitution <code>{{@literal @}varName@}</code> **/
     public static final String IS_VAR_VALUE_PATTERN = "^\\{@[-\\w.\\$]+@\\}$";
     /** defines a pattern for a variable name within a variable value pattern **/
     public final static Pattern VAR_NAME_IN_VALUE_PATTERN = Pattern
@@ -55,7 +57,7 @@ public class VariableResolver {
     }
 
     /**
-     * Expand variable references {varname} or {undefinedVarName|alt value} in
+     * Expand variable references <code>{varname}</code> or <code>{undefinedVarName|alt value}</code> in
      * the input string source
      *
      * @param input
@@ -92,18 +94,18 @@ public class VariableResolver {
     }
 
     /**
-     * Resolve a variable of the form {varName} or {varName|alt text}. If
-     * varName is bound in the environment, append the toString() value of the
-     * variable to the result (dropping the braces around the varName). If
-     * varName is not defined, the braces and varName are appended to the
-     * result. If the form is {varName|alt text} and the varName is not bound,
-     * the alt text is appended to the result (recursively expanding it.) if the
+     * Resolve a variable of the form <code>{varName}</code> or <code>{varName|alt text}</code>. If
+     * <var>varName</var>. is bound in the environment, append the <code>toString()</code> value of the
+     * variable to the result (dropping the braces around the <var>varName</var>). If
+     * <var>varName</var> is not defined, the braces and <var>varName</var> are appended to the
+     * result. If the form is <code>{varName|alt text}</code> and the <var>varName</var> is not bound,
+     * the <em>alt text</em> is appended to the result (recursively expanding it.) If the
      * first portion is not a valid variable name, then the remainder is
      * parsed/expanded recursively.
      * <p>
-     * The input is on a '{'. This will consume characters until to the matching
-     * '}' and leave index pointing after the matching '}'. If there is no
-     * matching '}', simply append the '{' to the result and return.
+     * The input is on a <code>'{'</code>. This will consume characters until to the matching
+     * <code>'}'</code> and leave index pointing after the matching <code>'}'</code>. If there is no
+     * matching <code>'}'</code>, simply append the <code>'{'</code> to the result and return.
      */
     private void resolveVar() {
         index++; // skip opening {
@@ -237,7 +239,7 @@ public class VariableResolver {
     }
 
     /**
-     * Checks if a node is a value node. If a node is of pattern {@varName@}
+     * Checks if a node is a value node. If a node is of pattern <code>{{@literal @}varName@}</code>
      * it is a value node; that is return the actual value for that
      * node instead of embedding the value to a string.
      *
@@ -257,7 +259,7 @@ public class VariableResolver {
      * This method resolves the variable value given the encoded variable name.
      * It will match the variable name in the pattern and will return the value
      * of the variable as an object from the Environment key-values map. The var
-     * name is of form {@varName@}. If the varName is invalid or
+     * name is of form <code>{{@literal @}varName@}</code>. If the <var>varName</var> is invalid or
      * cannot be found in the list of vars the var value won't be resolved. This
      * method does not resolve and append the var value into a string.
      *

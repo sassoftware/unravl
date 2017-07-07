@@ -388,9 +388,8 @@ public class UnRAVL {
     }
 
     /**
-     * Gets the value for the variable in a text node in a form of {@varName@
-     * }. The values are retrieved from the Environment keys-values
-     * map bindings.
+     * Gets the value for the variable in a text node in a form of <code>{{@literal @}varName@}</code>.
+     * The values are retrieved from the Environment keys-values map bindings.
      *
      * @param varName
      *            the variable name in braces
