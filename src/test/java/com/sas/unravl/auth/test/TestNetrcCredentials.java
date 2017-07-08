@@ -1,5 +1,5 @@
 // Copyright (c) 2015, SAS Institute Inc., Cary, NC, USA, All Rights Reserved
-package com.sas.unrav.auth.test;
+package com.sas.unravl.auth.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
