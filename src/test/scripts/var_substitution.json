@@ -13,7 +13,9 @@
             "phone": "3866549000",
             "email": "stranger@somemail.com",
             "gameOver": true,
-            "scores": [10, 99, 100.5, 900, 1000.5]         
+            "scores": [10, 99, 100.5, 900, 1000.5],
+            "t" : true,
+            "f" : false
    },
   "POST" : "{API_ROOT}/post",
   "headers" : { "Content-Type" : "text/plain",
@@ -26,7 +28,9 @@
             "homeAddress": "{@address@}",
             "contact": "{address} {phone} {email}",
             "isFinished": "{@gameOver@}",
-            "gameScores": "{@scores@}"
+            "gameScores": "{@scores@}",
+            "TRUE" : "{@t@}",
+            "FALSE" : "{@f@}"
    },
   "bind" : [ { "json" : "@-" },
              { "groovy" : {
@@ -39,11 +43,11 @@
       "sentHeaders['Accept'].textValue() == 'text/plain'",
       "sentHeaders['Content-Type'].textValue() == 'text/plain'",
       "sentHeaders['Agent'].textValue() == 'UnRAVL'",
-      "actual.id.isTextual()", 
-      "actual.score.isDouble()",  
-      "actual.isFinished.isBoolean()", 
-      "actual.homeAddress.isObject()", 
-      "actual.contact.isTextual()", 
+      "actual.id.isTextual()",
+      "actual.score.isDouble()",
+      "actual.isFinished.isBoolean()",
+      "actual.homeAddress.isObject()",
+      "actual.contact.isTextual()",
       "actual.gameScores.isArray()",
       "actual.id.textValue().equals('{ucode}0008')",
       "actual.name.textValue().equals('Bob')",
@@ -56,6 +60,10 @@
       "actual.homeAddress.get('country').textValue().equals(countryName)",
       "actual.homeAddress.get('zip').intValue() == zipCode",
       "actual.contact.textValue().equals(address.toString() + ' ' + phone + ' ' + email)",
-      "actual.gameScores == scores"
+      "actual.gameScores == scores",
+      "actual.TRUE.isBoolean()",
+      "actual.FALSE.isBoolean()",
+      "actual.TRUE.booleanValue()",
+      "!actual.FALSE.booleanValue()"
    ]
 }

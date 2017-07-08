@@ -34,10 +34,10 @@ public class VariableResolver {
             .compile("^[Uu]\\+[0-9A-Fa-f]{4}$");
 
     /** defines a pattern for variable substitution <code>{{@literal @}varName@}</code> **/
-    public static final String IS_VAR_VALUE_PATTERN = "^\\{@[-\\w.\\$]+@\\}$";
+    public static final String IS_VAR_VALUE_PATTERN = "^\\{@([-\\w.\\$]+)@\\}$";
     /** defines a pattern for a variable name within a variable value pattern **/
     public final static Pattern VAR_NAME_IN_VALUE_PATTERN = Pattern
-            .compile("[^\\{@][-\\w.\\$]+[^@\\}]");
+            .compile(IS_VAR_VALUE_PATTERN);
 
     private String input; // the input string that we will expand
     private final Map<String, Object> env;
@@ -270,7 +270,7 @@ public class VariableResolver {
     public Object resolveVarValue(String varName) {
         Matcher matcher = VAR_NAME_IN_VALUE_PATTERN.matcher(varName);
         if (matcher.find()) {
-            String candidateVarName = matcher.group();
+            String candidateVarName = matcher.group(1);
             if (env.containsKey(candidateVarName)) {
                 return env.get(candidateVarName);
             }
