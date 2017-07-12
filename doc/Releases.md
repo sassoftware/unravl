@@ -1,8 +1,5 @@
 ## UnRAVL releases
 
-* [Release v1.4.0](https://github.com/sassoftware/unravl/releases/tag/v1.4.0)
-  * Added `"{@varName@}"` notation to evaluate and resolve non-string variables
-    (for JSON numbers, booleans, arrays, objects in request bodies etc.)
 * [Release v1.3.1](https://github.com/sassoftware/unravl/releases/tag/v1.3.1)
   * Add a prefix option to the href links extractor to resolve relative links
   * Make Unix and Windows unravl CLI scripts more robust (running from a dev)
