@@ -3,7 +3,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>com.sas</groupId>
    <artifactId>sas.unravl</artifactId>
-   <version>1.4.0</version>
+   <version>1.4.1-SNAPSHOT</version>
    <description>Uniform REST API Validation Language  (UnRAVL) - a JSON DSL for validating REST APIs</description>
    <url>https://github.com/sassoftware/unravl</url>
    <inceptionYear>2014</inceptionYear>
