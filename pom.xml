@@ -9,20 +9,20 @@
    <inceptionYear>2014</inceptionYear>
 
    <properties>
-      <jackson.version>2.5.3</jackson.version>
+      <jackson.version>2.8.7</jackson.version>
       <groovy.version>2.4.7</groovy.version>
       <spring.version>4.2.2.RELEASE</spring.version>
       <http.client.version>4.5</http.client.version>
       <http.core.version>4.4.1</http.core.version>
       <commons.codec.version>1.10</commons.codec.version>
       <log4j.version>1.2.17</log4j.version>
-      <quava.version>18.0</quava.version>
+      <quava.version>21.0</quava.version>
       <junit.version>4.12</junit.version>
       <json.schema.validator.version>2.2.6</json.schema.validator.version>
       <json.schema.core.version>1.2.5</json.schema.core.version>
       <jackson.core.utils.version>1.8</jackson.core.utils.version>
-      <json.path.version>2.1.0</json.path.version>
-      <slf4j.version>1.7.21</slf4j.version>
+      <json.path.version>2.2.0</json.path.version>
+      <slf4j.version>1.7.25</slf4j.version>
    </properties>
 
    <scm>

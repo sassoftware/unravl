@@ -8,20 +8,20 @@ version = '1.4.1-SNAPSHOT'
 description = "Uniform REST API Validation Language"
 
 ext {
-    jacksonVersion = "2.5.+"
+    jacksonVersion = "2.8.7"
     groovyVersion = "2.4.7"
     springVersion = "4.2.2.RELEASE"
     httpClientVersion = "4.5"
     httpCoreVersion = "4.4.1"
     commonsCodecVersion = "1.10"
     log4jVersion = "1.2.17"
-    guavaVersion = "18.0"
+    guavaVersion = "21.0"
     junitVersion = "4.12"
-    jsonPathVersion = '2.+'
+    jsonPathVersion = '2.2.0'
     jsonSchemaValidatorVersion = "2.2.6"
     jsonSchemaCoreVersion = "1.2.5"
     jacksonCoreUtilsVersion = "1.8"
-    slf4jVersion = "1.7.21"
+    slf4jVersion = "1.7.25"
 }
 
 sourceCompatibility = 1.7
