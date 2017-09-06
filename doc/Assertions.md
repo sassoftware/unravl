@@ -10,13 +10,13 @@ all pass before calling the API. This can be used to
 validate environment variables that may have been set
 from other APIs calls in earlier tests.
 
-```JSON
+```
  "preconditions" : assertions
 ```
 
 `"assert"` assertions run *after* the API call and validate the result.
 
-```JSON
+```
  "assert" : assertions
 ```
 
@@ -44,7 +44,7 @@ on the first failed assertion in the array.
 The third form `"expession-string"` is a convenient
 abbreviation for
 
-```
+```JSON
 "assert" : [ { "groovy" : "expression-string" } ]`
 ```
 (See the [`"groovy"`](#groovy) assertion element below.)
@@ -111,13 +111,13 @@ and anywhere when using a @file-or-url.
 **TODO**: augment to allow environment substitution for numbers, booleans, etc.
 in literal JSON.  We can't use naked env references in the
 JSON literal, such as
-
+```
  { "longitude" : {longitude} }
-
+```
 to expand into
-
+```JSON
  { "longitude" : 89.392 }
-
+```
 because the entire UnRAVL script is parsed as JSON *before* any environment variables are defined,
 and the JSON parser will balk at `{longitude}` as invalid JSON.
 
@@ -248,7 +248,7 @@ the Swagger 2.0 schema.
 ```JSON
 {
   "name" : "Fetch a Swagger document and validate the JSON body against the Swagger schema.",
-  "GET" : "http://swagger.na.sas.com/swagger/public/factoryMiner/v1/swagger.json",
+  "GET" : "http://www.example.com/swagger/apis/factoryMiner/v1/swagger.json",
   "assert" : { "schema" : "@https://raw.githubusercontent.com/swagger-api/swagger-spec/master/schemas/v2.0/schema.json" }
 }
 ```
@@ -343,13 +343,15 @@ must also be a Boolean value.
 
 Note that double quote characters in the script must be escaped
 as \", but you can use single quotes to quote strings:
+```
   "lastName == 'Biesack'"
+```
 Also, non-ASCII Unicode characters can be
 expressed as \uxxxx (four hex digits), as per the JSON syntax rules.
 (The entire unRAVL script must be UTF-8.)
 
 If the string or one of the lines in the array form
-starts with `@`` then the value is assumed to be the name
+starts with `@` then the value is assumed to be the name
 of a (relative) file resource or a URL and the Groovy script or fragment
 is downloaded from there.
 
@@ -367,7 +369,7 @@ and put it in a
 
 The Groovy is evaluated and
 the assertion is true iff
-if the result is a Boolean and the Boolean value is true.
+the result is a Boolean and the Boolean value is true.
 Warning: Other types are ignored.
 
 The Groovy script may also throw a `java.lang.AssertionError`
@@ -459,7 +461,7 @@ does not have the `endsWith` method that Java's String class has.
 ## ignore and doc
 
 The `"ignore"` and `"doc"` assertions are
-useful to "comment out" an existing assertion in an UnRAVL,since JSON does not support comment syntax.
+useful to "comment out" an existing assertion in an UnRAVL, since JSON does not support comment syntax.
 For example, if you have the assertion
 ```JSON
  "assert" : [
@@ -467,14 +469,15 @@ For example, if you have the assertion
      { "status" : 201 }
      ]
 ```
-and you wish to ignore the "json" assertion, but retain it for future use, change it into an `"ignore"`:
+and you wish to ignore the "json" assertion, but retain it for future use, wrap it in an `"ignore"`:
 ```JSON
  "assert" : [
      { "ignore" : { "json" : "@benchmark.json" } },
      { "status" : 201 }
      ]
 ```
-This may also be used as a `"doc"` element, to allow arbitrary test documentation inside an `"assert"` or `"preconditions"`:
+
+`"doc"` elements allow arbitrary test documentation inside an `"assert"` or `"preconditions"`:
 ```JSON
 "assert" : [
      { "doc" : "Verify that the POST returns 201 Created status to indicate it successfully created a new resource." },
