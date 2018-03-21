@@ -11,3 +11,8 @@
 /bin/
 temp.json
 src/test/auth
+.idea
+out
+sas.unravl.iml
+sas.unravl.ipr
+sas.unravl.iws

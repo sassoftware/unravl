@@ -369,13 +369,18 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
             JsonNode link = matchLink(name, spec, linksArray, linksObject,
                     root);
             Object value = link;
-            if (href) {
-                value = link.get(HREF_KEY).textValue();
-                value = applyPrefix(root, (String) value, name);
-            } else if (unwrap)
-                value = Json.unwrap(link);
-            logger.info(String.format("Bound link name %s to %s", name, value));
-            call.getScript().bind(name, value);
+            if (link != null) {
+                if (href) {
+                    value = link.get(HREF_KEY).textValue();
+                    value = applyPrefix(root, (String) value, name);
+                } else if (unwrap)
+                    value = Json.unwrap(link);
+                logger.info(String.format("Bound link name %s to %s", spec, value));
+                call.getScript().bind(spec.textValue(), value);
+            } else {
+                logger.warn(String.format("No such link '%s' in %s extractor", name, key(root)));
+            }
+
         }
     }
 
