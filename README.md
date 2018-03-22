@@ -21,7 +21,7 @@ and using those values for assertions or in future API calls.
 
 A template facility provides reusable API call and validation constructs.
 
-Although initially conceived as as a REST validation too, UnRAVL
+Although initially conceived as a REST validation tool, UnRAVL
 is also well-suited for use as a *REST scripting language*, for
 stringing together a set of interrelated REST calls, extracting
 results and headers from early calls to be used when making
