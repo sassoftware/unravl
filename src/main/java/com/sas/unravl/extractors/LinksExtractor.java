@@ -437,8 +437,17 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
                     return link;
             }
         } else { // HAL mode
-            JsonNode link = linksObject.get(varName);
-            return link;
+            if (linkSpec.isTextual()) {
+            JsonNode link = linksObject.get(linkSpec.textValue());
+            return link; }
+            else if (linkSpec.has(REL_KEY)) {
+                JsonNode rel = linksObject.get(REL_KEY);
+                JsonNode link = linksObject.get(rel.textValue());
+                return link;
+            } else {
+               throw new UnRAVLException(String.format(
+                   "Link spec %s requires a rel", linkSpec));
+            }
         }
         throw new UnRAVLException(String.format(
                 "No such link matching %s found in %s %s", linkSpec, key(root),
