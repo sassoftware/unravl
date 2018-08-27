@@ -4,7 +4,7 @@ apply plugin: 'eclipse' // run './gradlew eclipse' to update Eclipse .classpath,
 apply plugin: 'idea'
 
 group = 'com.sas'
-version = '1.4.1-SNAPSHOT'
+version = '1.4.2-SNAPSHOT'
 
 description = "Uniform REST API Validation Language"
 
