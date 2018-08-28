@@ -364,18 +364,23 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
             }
         }
         for (Map.Entry<String, JsonNode> e : Json.fields(effectiveSpec)) {
-            String name = e.getKey();
+            String varName = e.getKey();
             JsonNode spec = e.getValue();
-            JsonNode link = matchLink(name, spec, linksArray, linksObject,
+            JsonNode link = matchLink(varName, spec, linksArray, linksObject,
                     root);
             Object value = link;
-            if (href) {
-                value = link.get(HREF_KEY).textValue();
-                value = applyPrefix(root, (String) value, name);
-            } else if (unwrap)
-                value = Json.unwrap(link);
-            logger.info(String.format("Bound link name %s to %s", name, value));
-            call.getScript().bind(name, value);
+            if (link != null) {
+                if (href) {
+                    value = link.get(HREF_KEY).textValue();
+                    value = applyPrefix(root, (String) value, varName);
+                } else if (unwrap)
+                    value = Json.unwrap(link);
+                logger.info(String.format("Bound link name %s to %s", varName, value));
+                call.getScript().bind(varName, value);
+            } else {
+                logger.warn(String.format("No such link '%s' in %s extractor", varName, key(root)));
+            }
+
         }
     }
 
@@ -424,42 +429,51 @@ public class LinksExtractor extends BaseUnRAVLExtractor {
         }
     }
 
-    private JsonNode matchLink(String name, JsonNode spec, ArrayNode linksArray,
+    private JsonNode matchLink(String varName, JsonNode linkSpec, ArrayNode linksArray,
             ObjectNode linksObject, ObjectNode root) throws UnRAVLException {
         if (linksArray != null) {// Collection+JSON mode
             for (JsonNode link : Json.toArray(linksArray)) {
-                if (matches(root, name, spec, link))
+                if (matches(root, linkSpec, link))
                     return link;
             }
         } else { // HAL mode
-            JsonNode link = linksObject.get(name);
-            return link;
+            if (linkSpec.isTextual()) {
+            JsonNode link = linksObject.get(linkSpec.textValue());
+            return link; }
+            else if (linkSpec.has(REL_KEY)) {
+                JsonNode rel = linksObject.get(REL_KEY);
+                JsonNode link = linksObject.get(rel.textValue());
+                return link;
+            } else {
+               throw new UnRAVLException(String.format(
+                   "Link spec %s requires a rel", linkSpec));
+            }
         }
         throw new UnRAVLException(String.format(
-                "No such link matching %s found in %s %s", spec, key(root),
+                "No such link matching %s found in %s %s", linkSpec, key(root),
                 linksArray == null ? linksObject : linksArray));
     }
 
-    private boolean matches(ObjectNode root, String name, JsonNode spec,
-            JsonNode link) throws UnRAVLException {
-        if (spec.isTextual()) {
-            return link.get(REL_KEY).textValue().equals(spec.textValue());
+    private boolean matches(ObjectNode root, JsonNode linkSpec,
+                            JsonNode link) throws UnRAVLException {
+        if (linkSpec.isTextual()) {
+            return link.get(REL_KEY).textValue().equals(linkSpec.textValue());
         } else { // ensure all items in spec match, but using regular
             // expression matching,
-            for (Map.Entry<String, JsonNode> e : Json.fields(spec)) {
+            for (Map.Entry<String, JsonNode> e : Json.fields(linkSpec)) {
                 String key = e.getKey();
                 JsonNode val = e.getValue();
                 JsonNode actual = link.get(key);
                 if (val.equals(actual))
                     continue; // skip pattern match if exact match
-                if (!matches(root, actual, val))
+                if (!nodesMatch(root, actual, val))
                     return false;
             }
         }
         return true;
     }
 
-    private boolean matches(ObjectNode root, JsonNode actual, JsonNode expected)
+    private boolean nodesMatch(ObjectNode root, JsonNode actual, JsonNode expected)
             throws UnRAVLException {
         if (actual.isTextual() && expected.isTextual()) {
             Pattern p = Pattern.compile(expected.textValue());

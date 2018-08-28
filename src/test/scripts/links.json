@@ -72,6 +72,18 @@
     },
 
 
+    { "name" : "Extract self, update, and delete URLs using varname : spec",
+      "bind" : { "hrefs" : { "selfHref" : "self",
+                             "updateHref" : "update",
+                             "deleteHref" : "delete" } },
+      "assert" : [
+          "selfHref == location",
+          "updateHref == location",
+          "deleteHref == location"
+      ]
+    },
+
+
     { "name" : "Extract self, update, and delete URLs using structural matching",
       "bind" : { "hrefs" : {
             "xself" : { "rel" : "self", "method" : "GET" },
