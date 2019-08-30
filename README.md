@@ -1,3 +1,6 @@
+## unravl has been archived!
+This project is no longer actively maintained by its owner, so we have set the project as read-only (archive).  If you continue to use it, be advised that its dependencies (referenced in pom.xml) may require attention as there are often security-related updates.  If you find the project useful and would like to bring it forward, please feel free to fork the repo!
+
 ## Uniform REST API Validation Language (UnRAVL) - a JSON domain-specific language for validating REST APIs
 
 UnRAVL is a domain-specific language, coded in JSON, for validating REST APIs.
